@@ -1,0 +1,7 @@
+sqlmodel
+fastapi
+uvicorn
+bcrypt
+dotenv
+typing
+pydantic
