@@ -2,6 +2,8 @@ from sqlmodel import SQLModel, Field, Relationship, Column, TIMESTAMP, JSON
 from typing import Optional, List
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 
 
 class UserBase(SQLModel):
