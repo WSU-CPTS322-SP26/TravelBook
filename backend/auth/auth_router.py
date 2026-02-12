@@ -1,0 +1,38 @@
+from fastapi import HTTPException, Depends, APIRouter
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlmodel import Session
+from database.models import User, UserCreate, UserUpdate
+from database.session import get_session
+from auth.auth_handler import *
+from auth.auth_model import *
+
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+@router.post("/register")
+def register_user(user: UserCreate, db: Session = Depends(get_session)):
+    db_user = get_user(db, user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+    hashed_password = get_password_hash(user.password)
+    db_user = User.model_validate(user, update={"hashed_password": hashed_password})
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@router.post("/token")
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+      db: Session = Depends(get_session)
+) -> Token:
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+              headers={"WWW-Authenticate": "Bearer"})
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
+    return Token(access_token=access_token, token_type="bearer")

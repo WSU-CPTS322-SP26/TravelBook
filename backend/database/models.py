@@ -43,7 +43,7 @@ class Message(SQLModel, table=True):
 
 class Conversation(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_ids: List[int] = Field()
+    user: list[User] = Relationship(back_populates="conversation")
     messages: List[Message] = Relationship(back_populates="conversation")
     trip: Trip = Relationship(back_populates="conversation")
 

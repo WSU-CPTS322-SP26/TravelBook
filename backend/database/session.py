@@ -10,7 +10,8 @@ DB_NAME = os.getenv("DB_NAME")          # name
 DB_USER = os.getenv("DB_USER")          # username
 DB_PASSWORD = os.getenv("DB_PASSWORD")  # password
 
-engine = create_engine(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, echo=True)
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+engine = create_engine(DATABASE_URL, echo=True)
 SQLModel.metadata.create_all(engine)
 
 def get_session():

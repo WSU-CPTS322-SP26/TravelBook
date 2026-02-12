@@ -5,3 +5,6 @@ bcrypt
 dotenv
 typing
 pydantic
+jwt
+passlib
+python-multipart
