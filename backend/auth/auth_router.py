@@ -1,3 +1,4 @@
+from typing_extensions import Annotated
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session
@@ -36,3 +37,7 @@ async def login_for_access_token(
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
     return Token(access_token=access_token, token_type="bearer")
+
+@router.get("/me", response_model=UserResponse)
+def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
+    return current_user
