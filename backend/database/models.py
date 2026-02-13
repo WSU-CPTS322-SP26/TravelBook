@@ -7,19 +7,13 @@ import os
 
 
 class UserBase(SQLModel):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     username: str
     email: str
 
 
-class UserConversationLink(SQLModel, table=True):
-    user_id: Optional[int] = Field(default=None, foreign_key="user.id", primary_key=True)
-    conversation_id: Optional[int] = Field(default=None, foreign_key="conversation.id", primary_key=True)
-
-
 class User(UserBase, table=True):
     hashed_password: str = Field()
-    conversations: List["Conversation"] = Relationship(back_populates="users", link_model=UserConversationLink)
 
 
 class UserCreate(UserBase):
@@ -37,8 +31,6 @@ class Trip(SQLModel, table=True):
     name: str
     description: Optional[str] = None
     user_id: int = Field(foreign_key="user.id")
-    conversation_id: int = Field(foreign_key="conversation.id")
-    conversation: Optional["Conversation"] = Relationship(back_populates="trip")
 
 
 class Message(SQLModel, table=True):
@@ -46,21 +38,19 @@ class Message(SQLModel, table=True):
     content: str
     sender_user_id: int = Field(foreign_key="user.id")
     reciever_user_id: int = Field(foreign_key="user.id")
-    conversation_id: Optional[int] = Field(default=None, foreign_key="conversation.id")
     timestamp: Optional[datetime] = Field(sa_column=Column(TIMESTAMP(timezone=True), default=datetime.now()))
-    conversation: Optional["Conversation"] = Relationship(back_populates="messages")
 
 
 class Conversation(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    users: List["User"] = Relationship(back_populates="conversations", link_model=UserConversationLink)
-    messages: List["Message"] = Relationship(back_populates="conversation")
-    trip: Optional["Trip"] = Relationship(back_populates="conversation")
+    user: list[User] = Relationship(back_populates="conversation")
+    messages: List[Message] = Relationship(back_populates="conversation")
+    trip: Trip = Relationship(back_populates="conversation")
 
 
 class Location(SQLModel):
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    latitude: Optional[float]
+    longitude: Optional[float]
     name: str
     address: Optional[str] = None
 
@@ -71,7 +61,7 @@ class Event(SQLModel, table=True):
     description: Optional[str] = None
     trip_id: int = Field(foreign_key="trip.id")
     date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
-    location: dict = Field(sa_column=Column(JSON))
+    location: Location = Field(sa_column=Column(JSON))
 
 
 class Album(SQLModel, table=True):
