@@ -5,7 +5,7 @@ from database.session import get_session
 from auth.auth_handler import get_current_user
 from typing import List
 
-router = APIRouter(prefix="/messages", tags=["messages"])
+router = APIRouter(tags=["messages"])
 
 @router.post("/send")
 def send_message(message: Message,
@@ -16,6 +16,16 @@ def send_message(message: Message,
     db.commit()
     db.refresh(db_message)
     return db_message
+
+@router.post("/conversation")
+def create_conversation(conversation: Conversation,
+                        db: Session = Depends(get_session), 
+                        current_user: User = Depends(get_current_user)):
+    db_conversation = Conversation.model_validate(conversation, update={"users": [current_user]})
+    db.add(db_conversation)
+    db.commit()
+    db.refresh(db_conversation)
+    return db_conversation
 
 @router.get("/conversation/{conversation_id}", response_model=List[Message])
 def get_conversation(conversation_id: int,
