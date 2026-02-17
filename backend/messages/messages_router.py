@@ -34,6 +34,6 @@ def get_conversation(conversation_id: int,
     conversation = db.exec(select(Conversation).where(Conversation.id == conversation_id)).first()
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    if current_user.id not in [user.id for user in conversation.user]:
+    if current_user.id not in [user.id for user in conversation.users]:
         raise HTTPException(status_code=403, detail="Not authorized to view this conversation")
     return conversation.messages

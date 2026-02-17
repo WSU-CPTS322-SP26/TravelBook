@@ -14,6 +14,7 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 engine = create_engine(DATABASE_URL, echo=True)
 SQLModel.metadata.create_all(engine)
 print(f"Database connected to: {DATABASE_URL}")
+print("Database tables recreated from models")
 
 def get_session():
     with Session(engine) as session:
