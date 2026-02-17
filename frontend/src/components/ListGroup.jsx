@@ -1,3 +1,8 @@
+
+function handleClick(event){
+    console.log(event)
+}
+
 function ListGroup(){
     let items= [
         'New York',
@@ -6,14 +11,15 @@ function ListGroup(){
         'London',
         'Paris'
     ];
-    items=[];
     
     return (
     <>
         <h1>List</h1>
         <ul className="list-group">
-            {items.length===0 && <p>No Items Found</p>} 
-            {items.map(item => <li key={item} className='list-group-item'>{item}</li>)}
+            {items.length===0 && <p>No Items Found</p>}
+            {items.map((item) => 
+                <li key={item} onClick={handleClick} className='list-group-item'>{item}</li>
+            )}
         </ul>
     </>
     );
