@@ -8,8 +8,8 @@ function App(){
         'London',
         'Paris'
     ];
-
-  return <div><ListGroup items={items} heading = "Cities" /></div>
+  const handleSelectItem = (item) => {console.log(item); }
+  return <div><ListGroup items={items} heading = "Cities" onSelectItem={handleSelectItem} /></div>
 }
 
 export default App;
