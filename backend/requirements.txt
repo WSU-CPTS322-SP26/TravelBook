@@ -5,6 +5,8 @@ bcrypt
 dotenv
 typing
 pydantic
-jwt
+pyJWT
 passlib
 python-multipart
+pytest
+httpx
