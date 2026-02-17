@@ -1,7 +1,4 @@
-
-function handleClick(event){
-    console.log(event)
-}
+import {useState} from 'react';
 
 function ListGroup(){
     let items= [
@@ -11,14 +8,15 @@ function ListGroup(){
         'London',
         'Paris'
     ];
+    const [selectedIndex, setSelectedIndex] = useState(-1);
     
     return (
     <>
         <h1>List</h1>
         <ul className="list-group">
             {items.length===0 && <p>No Items Found</p>}
-            {items.map((item) => 
-                <li key={item} onClick={handleClick} className='list-group-item'>{item}</li>
+            {items.map((item, index) => 
+                <li key={item} onClick={ () => { setSelectedIndex(index) } } className={selectedIndex===index ? 'list-group-item active' : 'list-group-item' }>{item}</li>
             )}
         </ul>
     </>
