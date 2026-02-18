@@ -1,4 +1,4 @@
-// src/hooks/useGoogleMaps.js
+// src/hooks/useGoogleMaps.jsx
 import { useEffect, useState } from "react";
 
 const GOOGLE_MAPS_API_KEY = "";
