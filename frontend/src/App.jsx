@@ -1,18 +1,17 @@
-import Button from './components/Button';
-import Alert from './components/Alert';
-import { useState } from 'react';
+import React from "react";
+import FruitList from "./components/Fruit";
 
-function App(){
-  let [alertVisible, setAlertVisibilty] = useState(false);
-
-
-
-  return (
-    <div>
-      {alertVisible && <Alert onClose={()=>{ setAlertVisibilty(false)} }> Close me now!</Alert>}
-      <Button onClick={()=>{ setAlertVisibilty(true) }} >button</Button>
+function App(){  
+  return(
+    <div className = "App">
+      <header className="app-header">
+        <h1>Fruit Management App</h1>
+      </header>
+      <main>
+        <FruitList/>
+      </main>
     </div>
-  )
+  );
 }
 
 export default App;

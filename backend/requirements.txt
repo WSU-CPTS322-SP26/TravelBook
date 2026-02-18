@@ -1,0 +1,13 @@
+sqlmodel
+fastapi
+click
+uvicorn
+bcrypt
+dotenv
+typing
+pydantic
+pyJWT
+passlib
+python-multipart
+pytest
+httpx
