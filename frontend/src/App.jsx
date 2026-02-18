@@ -1,4 +1,4 @@
-// src/App.js
+// src/App.jsx
 import React, { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";

@@ -1,4 +1,4 @@
-// src/pages/ChatPage.js
+// src/pages/ChatPage.jsx
 import React, { useState } from "react";
 
 const initialMessages = [

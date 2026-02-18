@@ -1,4 +1,4 @@
-// src/pages/MapPage.js
+// src/pages/MapPage.jsx
 import React, { useEffect, useRef } from "react";
 import { useGoogleMaps } from "../hooks/useGoogleMaps";
 

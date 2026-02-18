@@ -1,4 +1,4 @@
-// src/pages/LoginPage.js
+// src/pages/LoginPage.jsx
 import React, { useState } from "react";
 
 export default function LoginPage({ onLogin }) {

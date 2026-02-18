@@ -1,4 +1,4 @@
-// src/pages/DestinationSelectPage.js
+// src/pages/DestinationSelectPage.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 

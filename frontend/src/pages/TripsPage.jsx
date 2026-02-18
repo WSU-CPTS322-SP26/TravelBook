@@ -1,4 +1,4 @@
-// src/pages/TripsPage.js
+// src/pages/TripsPage.jsx
 import React from "react";
 
 const trips = [
