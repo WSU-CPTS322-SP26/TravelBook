@@ -71,7 +71,7 @@ class Event(SQLModel, table=True):
     description: Optional[str] = None
     trip_id: int = Field(foreign_key="trip.id")
     date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
-    location: dict = Field(sa_column=Column(JSON))
+    location: dict = Field(sa_column=Column(JSON, nullable=False))
 
 
 class Album(SQLModel, table=True):
