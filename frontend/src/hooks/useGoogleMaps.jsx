@@ -1,7 +1,7 @@
 // src/hooks/useGoogleMaps.js
 import { useEffect, useState } from "react";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyCGRxnSVeWNBfaUjvSwkvM3RANEsBOBj-Y";
+const GOOGLE_MAPS_API_KEY = "";
 
 export function useGoogleMaps() {
   const [loaded, setLoaded] = useState(false);
@@ -29,3 +29,4 @@ export function useGoogleMaps() {
 
   return loaded;
 }
+
