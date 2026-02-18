@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import auth.auth_router as auth_router
 import events.events_router as events_router
 import messages.messages_router as messages_router
+import trips.trips_router as trips_router
 
 
 app = FastAPI(debug=True)
@@ -24,6 +25,7 @@ app.add_middleware(
 app.include_router(auth_router.router, prefix="/auth")
 app.include_router(messages_router.router, prefix="/messages")
 app.include_router(events_router.router, prefix="/events")
+app.include_router(trips_router.router, prefix="/trips")
 
 
 if __name__ == "__main__":

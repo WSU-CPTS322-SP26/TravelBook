@@ -18,14 +18,14 @@ def create_event(event: Event,
     return db_event
 
 
-@router.get("/event/{date}", response_model=List[Event])
+@router.get("/{date}", response_model=List[Event])
 def get_events_by_date(date: str,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
     events = db.exec(select(Event).where(Event.user_id == current_user.id, Event.date == date)).all()
     return events
 
-@router.get("/event/{event_id}", response_model=Event)
+@router.get("/{event_id}", response_model=Event)
 def get_event_by_id(event_id: int,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
@@ -34,7 +34,7 @@ def get_event_by_id(event_id: int,
         raise HTTPException(status_code=404, detail="Event not found")
     return event
 
-@router.delete("/event/{event_id}")
+@router.delete("/{event_id}")
 def delete_event(event_id: int,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
@@ -45,7 +45,7 @@ def delete_event(event_id: int,
     db.commit()
     return {"detail": "Event deleted successfully"}
 
-@router.put("/event/{event_id}", response_model=Event)
+@router.put("/{event_id}", response_model=Event)
 def update_event(event_id: int,
             event: Event,
             db: Session = Depends(get_session), 
