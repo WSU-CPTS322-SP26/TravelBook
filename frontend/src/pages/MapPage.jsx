@@ -1,60 +1,67 @@
 // src/pages/MapPage.jsx
 import React, { useEffect, useRef } from "react";
-import { useGoogleMaps } from "../hooks/useGoogleMaps";
-
-const markers = [
-  { name: "New York", position: { lat: 40.7128, lng: -74.006 } },
-  { name: "London", position: { lat: 51.5074, lng: -0.1278 } },
-  { name: "Paris", position: { lat: 48.8566, lng: 2.3522 } },
-  { name: "Tokyo", position: { lat: 35.6762, lng: 139.6503 } },
-  { name: "Cancun", position: { lat: 21.1619, lng: -86.8515 } },
-];
 
 export default function MapPage() {
-  const loaded = useGoogleMaps();
   const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
+  const inputRef = useRef(null);
+  const mapInstance = useRef(null);
 
   useEffect(() => {
-    if (!loaded || !mapRef.current || mapInstanceRef.current) return;
+    // Wait for Google Maps to load
+    if (!window.google || !window.google.maps) return;
 
-    const center = { lat: 30, lng: 0 };
-    const map = new window.google.maps.Map(mapRef.current, {
-      center,
-      zoom: 2,
-      disableDefaultUI: true,
-      zoomControl: true,
+    // Create the map
+    mapInstance.current = new window.google.maps.Map(mapRef.current, {
+      center: { lat: 38.7946, lng: -106.5348 },
+      zoom: 4,
+      mapId: "DEMO_MAP_ID",
     });
 
-    markers.forEach((m) => {
-      const marker = new window.google.maps.Marker({
-        position: m.position,
-        map,
-        title: m.name,
-      });
+    // Create autocomplete search
+    const autocomplete = new window.google.maps.places.Autocomplete(
+      inputRef.current,
+      {
+        fields: ["geometry", "name"],
+      }
+    );
 
-      const info = new window.google.maps.InfoWindow({
-        content: `<div style="font-size:14px;font-weight:600;">${m.name}</div>`,
-      });
+    // When user selects a place
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+      if (!place.geometry) return;
 
-      marker.addListener("click", () => {
-        info.open({ anchor: marker, map });
-      });
+      mapInstance.current.panTo(place.geometry.location);
+      mapInstance.current.setZoom(10);
     });
-
-    mapInstanceRef.current = map;
-  }, [loaded]);
+  }, []);
 
   return (
     <div className="page-container">
-      <h2>Explore Destinations on Map</h2>
-      <p className="muted">
-        Click on a marker to see the city name.
-      </p>
-      <div className="map-container">
-        {!loaded && <div className="map-loading">Loading map…</div>}
-        <div ref={mapRef} className="map-canvas" />
-      </div>
+      <h2>Explore Destinations</h2>
+
+      {/* Search Bar */}
+      <input
+        ref={inputRef}
+        className="text-input"
+        placeholder="Search for a city or place..."
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginBottom: "12px",
+          borderRadius: "8px",
+        }}
+      />
+
+      {/* Map */}
+      <div
+        ref={mapRef}
+        style={{
+          width: "100%",
+          height: "400px",
+          borderRadius: "12px",
+          overflow: "hidden",
+        }}
+      />
     </div>
   );
 }
