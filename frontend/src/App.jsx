@@ -1,35 +1,87 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+//Generative AI was utilized to generate this code
+// src/App.jsx
+import React, { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import TripsPage from "./pages/TripsPage";
+import DestinationSelectPage from "./pages/CalendarPage";
+import MapPage from "./pages/MapPage";
+import ChatPage from "./pages/ChatPage";
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PlanTripPage from "./pages/PlanTripPage";
+import CalendarPage from "./pages/CalendarPage";
+
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [user, setUser] = useState(null);
+
+  const handleLogin = (username) => {
+    setUser({ name: username });
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app-root">
+      {user && <Navbar user={user} onLogout={handleLogout} />}
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            user ? <Navigate to="/trips" replace /> : <LoginPage onLogin={handleLogin} />
+          }
+        />
+        <Route
+          path="/trips"
+          element={
+            <ProtectedRoute user={user}>
+              <TripsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/Calendar"
+          element={
+            <ProtectedRoute user={user}>
+              <CalendarPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/map"
+          element={
+            <ProtectedRoute user={user}>
+              <MapPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute user={user}>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+         path="/plan-trip"
+         element={
+          <ProtectedRoute user={user}>
+         <PlanTripPage />
+         </ProtectedRoute>
+        } 
+        />
+        <Route path="*" element={<Navigate to={user ? "/trips" : "/login"} replace />} />
+        
+        <Route path="/chat/:tripName" element={<ChatPage />} />
+
+      </Routes>
+    </div>
+  );
 }
 
-export default App
+export default App;
