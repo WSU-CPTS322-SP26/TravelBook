@@ -1,61 +1,134 @@
-// src/pages/TripsPage.jsx
-import React from "react";
+// src/pages/TripListPage.jsx
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const trips = [
-  {
-    id: 1,
-    title: "Barcelona Getaway",
-    dates: "June 15 – June 20",
-    image:
-      "https://images.pexels.com/photos/460672/pexels-photo-460672.jpeg?auto=compress&cs=tinysrgb&w=800",
-    participants: ["A", "S", "E", "M"],
-  },
-  {
-    id: 2,
-    title: "New York City Adventure",
-    dates: "August 5 – August 9",
-    image:
-      "https://images.pexels.com/photos/313782/pexels-photo-313782.jpeg?auto=compress&cs=tinysrgb&w=800",
-    participants: ["A", "S", "E", "M", "J"],
-  },
-  {
-    id: 3,
-    title: "Cancun Beach Trip",
-    dates: "December 27 – January 3",
-    image:
-      "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=800",
-    participants: ["A", "S", "E", "M", "J"],
-  },
-];
+export default function TripListPage() {
+  const [trips, setTrips] = useState([]);
+  const [openTripIndex, setOpenTripIndex] = useState(null);
+  const navigate = useNavigate();
 
-export default function TripsPage() {
+  // Load trips from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("savedTrips");
+    if (stored) {
+      setTrips(JSON.parse(stored));
+    }
+  }, []);
+
+  // Delete a trip
+  function deleteTrip(index) {
+    const updated = trips.filter((_, i) => i !== index);
+    setTrips(updated);
+    localStorage.setItem("savedTrips", JSON.stringify(updated));
+  }
+
+  // Toggle trip details
+  function toggleTrip(index) {
+    setOpenTripIndex(openTripIndex === index ? null : index);
+  }
+
   return (
     <div className="page-container">
-      <h2>My Trips</h2>
-      <div className="trip-list">
-        {trips.map((trip) => (
-          <div key={trip.id} className="trip-card">
+      <h2>Your Trips</h2>
+
+      {trips.length === 0 && <p>You haven't saved any trips yet.</p>}
+
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {trips.map((trip, index) => (
+          <li
+            key={index}
+            style={{
+              marginBottom: "12px",
+              padding: "12px",
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            {/* Trip Header */}
             <div
-              className="trip-image"
-              style={{ backgroundImage: `url(${trip.image})` }}
-            />
-            <div className="trip-content">
-              <h3>{trip.title}</h3>
-              <p className="trip-dates">{trip.dates}</p>
-              <div className="trip-footer">
-                <div className="avatar-stack">
-                  {trip.participants.map((p, idx) => (
-                    <div key={idx} className="avatar-circle">
-                      {p}
-                    </div>
-                  ))}
-                </div>
-                <button className="btn-outline">View Trip</button>
+              onClick={() => toggleTrip(index)}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                cursor: "pointer",
+              }}
+            >
+              <div>
+                <strong>{trip.name}</strong>
+                <br />
+                <span>{trip.locations.length} saved locations</span>
+                {trip.startDate && trip.endDate && (
+                  <div style={{ fontSize: "0.9em", opacity: 0.8 }}>
+                    {trip.startDate} → {trip.endDate}
+                  </div>
+                )}
               </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTrip(index);
+                }}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "6px",
+                  background: "#d9534f",
+                  color: "white",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
             </div>
-          </div>
+
+            {/* Trip Details */}
+            {openTripIndex === index && (
+              <div style={{ marginTop: "12px" }}>
+                <h4>Locations</h4>
+                <ul>
+                  {trip.locations.map((loc, i) => (
+                    <li key={i}>
+                      {loc.name} — ({loc.lat.toFixed(4)}, {loc.lng.toFixed(4)})
+                    </li>
+                  ))}
+                </ul>
+
+                {trip.itinerary && (
+                  <>
+                    <h4>Itinerary</h4>
+                    <ul>
+                      {Object.entries(trip.itinerary).map(([dayIndex, locName]) => (
+                        <li key={dayIndex}>
+                          Day {Number(dayIndex) + 1}: {locName}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {/* Open Chat Button */}
+                <button
+                  onClick={() => navigate(`/chat/${encodeURIComponent(trip.name)}`)}
+                  style={{
+                    marginTop: "10px",
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    background: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                    width: "100%",
+                  }}
+                >
+                  Open Group Chat
+                </button>
+              </div>
+            )}
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

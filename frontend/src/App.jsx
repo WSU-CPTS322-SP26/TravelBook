@@ -3,11 +3,15 @@ import React, { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import TripsPage from "./pages/TripsPage";
-import DestinationSelectPage from "./pages/DestinationSelectPage";
+import DestinationSelectPage from "./pages/CalendarPage";
 import MapPage from "./pages/MapPage";
 import ChatPage from "./pages/ChatPage";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PlanTripPage from "./pages/PlanTripPage";
+import CalendarPage from "./pages/CalendarPage";
+
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -39,10 +43,10 @@ function App() {
           }
         />
         <Route
-          path="/destinations"
+          path="/Calendar"
           element={
             <ProtectedRoute user={user}>
-              <DestinationSelectPage />
+              <CalendarPage />
             </ProtectedRoute>
           }
         />
@@ -62,7 +66,18 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+         path="/plan-trip"
+         element={
+          <ProtectedRoute user={user}>
+         <PlanTripPage />
+         </ProtectedRoute>
+        } 
+        />
         <Route path="*" element={<Navigate to={user ? "/trips" : "/login"} replace />} />
+        
+        <Route path="/chat/:tripName" element={<ChatPage />} />
+
       </Routes>
     </div>
   );

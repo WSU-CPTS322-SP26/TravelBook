@@ -1,6 +1,7 @@
 // src/pages/ChatPage.jsx
 import React, { useState } from "react";
 
+
 const initialMessages = [
   { id: 1, author: "Alex", text: "Excited for tapas and beach days!", mine: false },
   { id: 2, author: "Sarah", text: "Don’t forget to pack sunscreen.", mine: false },

@@ -5,19 +5,22 @@ import { NavLink } from "react-router-dom";
 export default function Navbar({ user, onLogout }) {
   return (
     <nav className="navbar">
-      <div className="navbar-left">TripBuddy</div>
+      <div className="navbar-left">TravelBook</div>
       <div className="navbar-center">
         <NavLink to="/trips" className="nav-link">
           Trips
         </NavLink>
-        <NavLink to="/destinations" className="nav-link">
-          Destinations
+        <NavLink to="/calendar" className="nav-link">
+          Calendar
         </NavLink>
         <NavLink to="/map" className="nav-link">
           Map
         </NavLink>
         <NavLink to="/chat" className="nav-link">
           Group Chat
+        </NavLink>
+        <NavLink to="/plan-trip" className="nav-link">
+        Plan Trip
         </NavLink>
       </div>
       <div className="navbar-right">
