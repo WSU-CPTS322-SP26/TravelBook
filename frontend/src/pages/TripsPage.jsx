@@ -1,3 +1,4 @@
+//Generative AI was utilized to generate this code
 // src/pages/TripListPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";

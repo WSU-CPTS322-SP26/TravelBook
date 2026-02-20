@@ -1,3 +1,4 @@
+// Generative AI was utilized to generate this code
 // src/hooks/useGoogleMaps.jsx
 import { useEffect, useState } from "react";
 

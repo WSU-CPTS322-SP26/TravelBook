@@ -1,3 +1,4 @@
+// Generative AI was utilized to generate this code
 // src/components/Navbar.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";

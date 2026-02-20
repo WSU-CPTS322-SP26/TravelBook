@@ -1,3 +1,4 @@
+//Generative AI was utilized to generate this code
 // src/App.jsx
 import React, { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";

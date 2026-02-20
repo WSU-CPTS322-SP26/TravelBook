@@ -1,3 +1,4 @@
+//Generative AI was utilized to generate this code
 // src/components/ProtectedRoute.jsx
 import React from "react";
 import { Navigate } from "react-router-dom";
