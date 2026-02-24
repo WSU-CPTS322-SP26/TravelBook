@@ -9,12 +9,12 @@ export const WebSocketProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   
   // Get user ID from your auth context or localStorage
-  const userId = localStorage.getItem('userId') || '42'; // Replace with actual user ID
-  const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws';
+  const userId = localStorage.getItem('userId') || '42';
+  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/sendmsg';
 
   useEffect(() => {
     // Connect to WebSocket
-    wsService.connect(wsUrl, userId);
+    wsService.connect(wsUrl);
 
     // Set up event listeners
     wsService.on('connected', () => {
@@ -51,7 +51,9 @@ export const WebSocketProvider = ({ children }) => {
     wsService.send({
       type: 'send_message',
       conversation_id: conversationId,
-      content: content
+      content: content,
+      sender_id: userId,
+      author: `User ${userId}`
     });
   };
 

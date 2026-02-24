@@ -12,6 +12,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
 
+import {WebSocketProvider} from "./context/WebSocketContext";
+
 
 
 function App() {
@@ -26,6 +28,7 @@ function App() {
   };
 
   return (
+    <WebSocketProvider>
     <div className="app-root">
       {user && <Navbar user={user} onLogout={handleLogout} />}
       <Routes>
@@ -81,6 +84,7 @@ function App() {
 
       </Routes>
     </div>
+    </WebSocketProvider>
   );
 }
 

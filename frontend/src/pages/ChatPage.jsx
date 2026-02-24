@@ -1,6 +1,7 @@
 // src/pages/ChatPage.jsx
 import React, { useState } from "react";
-
+import {useWebsocketContext } from "../context/WebSocketContext"
+import {WS_EVENTS} from "../services/constant";
 
 const initialMessages = [
   { id: 1, author: "Alex", text: "Excited for tapas and beach days!", mine: false },
@@ -9,22 +10,30 @@ const initialMessages = [
 ];
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [isConnected, send] = useWebsocket();
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        author: "Me",
-        text: input.trim(),
-        mine: true,
-      },
-    ]);
-    setInput("");
+  const {message, sendMessage, subscribe} = useWebsocketContext();
+
+  useEffect(() => {
+    // Subscribe to new messages
+    const unsubscribe = subscribe(WS_EVENTS.NEW_MESSAGE, (data) => {
+      if (data.message.conversation_id === conversationId) {
+        setMessages(prev => [...prev, data.message]);
+      }
+    });
+
+    // Cleanup
+    return unsubscribe;
+  }, [conversationId, subscribe]);
+
+
+  const handleSend = () => {
+    if (input.trim()) {
+      sendMessage(conversationId, input);
+      setInput('');
+    }
   };
 
   return (

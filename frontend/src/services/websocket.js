@@ -2,6 +2,8 @@ class WebSocketService {
   constructor() {
     this.ws = null;
     this.url = null;
+    this.baseUrl = null;
+    this.userId = null;
     this.listeners = {};
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
@@ -10,8 +12,10 @@ class WebSocketService {
   }
 
   // Connect to WebSocket server
-  connect(url, userId) {
-    this.url = `${url}/${userId}`;
+  connect(url, userId = null) {
+    this.baseUrl = url;
+    this.userId = userId;
+    this.url = userId ? `${url}/${userId}` : url;
     this.isIntentionallyClosed = false;
     
     try {
@@ -79,7 +83,7 @@ class WebSocketService {
       console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
       
       setTimeout(() => {
-        this.connect(this.url.replace(/\/\d+$/, ''), this.url.match(/\/(\d+)$/)?.[1]);
+        this.connect(this.baseUrl, this.userId);
       }, this.reconnectInterval);
     } else {
       console.error('Max reconnection attempts reached');
