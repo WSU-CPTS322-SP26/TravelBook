@@ -11,14 +11,39 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
+import api from "./api"
 
 
 
 function App() {
   const [user, setUser] = useState(null);
 
-  const handleLogin = (username) => {
-    setUser({ name: username });
+  let handleLogin = async (username, password) => {
+    try{
+      const params = new URLSearchParams();
+      params.append("username", username);
+      params.append("password", password);
+      let res = await api.post("/auth/token", params);
+
+      setUser({ name: username, password: password});
+    } catch(err){
+      console.log(err, "Attempting registration...");
+      handleRegister(username, password);
+    }
+    
+  };
+
+  let handleRegister = async (username, password) => {
+    try{
+      const userId = Math.floor(Math.random() * 2147483647);
+      const params = {id: userId, email: username, username:username, password:password};
+      let res = await api.post("/auth/register", params);
+
+      setUser({ name: username, password: password});
+    } catch(err){
+      console.log(err)
+    }
+    
   };
 
   const handleLogout = () => {
