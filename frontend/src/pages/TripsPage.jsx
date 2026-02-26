@@ -24,12 +24,14 @@ export default function TripListPage() {
   const getTrips = async() =>{
     let res = await api.get("/trips/getTrips");
     console.log(res.data);
+    return res.data;
   }
+
 
   getTrips();
 
 
-  // Load trips from localStorage
+  //Load trips from localStorage
   useEffect(() => {
     const stored = localStorage.getItem("savedTrips");
     if (stored) {
@@ -38,8 +40,10 @@ export default function TripListPage() {
   }, []);
 
   // Delete a trip
-  function deleteTrip(index) {
+  async function deleteTrip(index) {
     const updated = trips.filter((_, i) => i !== index);
+    let selected = await getTrips().then((data)=> { return data[index];});
+    api.delete(`/trips/${selected.id}`)
     setTrips(updated);
     localStorage.setItem("savedTrips", JSON.stringify(updated));
   }

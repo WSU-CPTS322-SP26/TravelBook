@@ -42,7 +42,7 @@ export default function PlanTripPage() {
 
     }
 
-    const newTrip = {
+    const dbTrip = {
       id: newConversation.id,
       name: tripName,
       description:"",
@@ -50,10 +50,17 @@ export default function PlanTripPage() {
       locations: savedLocations,
       createdAt: new Date().toISOString(),
     };
-    
-    createTrip(newConversation, newTrip);
 
+    const newTrip = {
+      name: tripName,
+      locations: savedLocations,
+      createdAt: new Date().toISOString(),
+    };
+    
     setSavedTrips((prev) => [...prev, newTrip]);
+    
+    createTrip(newConversation, dbTrip);
+
 
     // Optional: persist trips
     localStorage.setItem(
