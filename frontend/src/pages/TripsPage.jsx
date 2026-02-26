@@ -6,38 +6,37 @@ import api from "../api";
 
 export default function TripListPage() {
   const [trips, setTrips] = useState([]);
+  
   const [openTripIndex, setOpenTripIndex] = useState(null);
   const navigate = useNavigate();
-
-  /*
-    class Trip(SQLModel, table=True):
-      id: Optional[int] = Field(default=1, primary_key=True)
-      name: str
-      description: Optional[str] = None
-      user_id: int = Field(foreign_key="user.id")
-      conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id")
-      conversation: Optional["Conversation"] = Relationship(back_populates="trip")
-      events: List["Event"] = Relationship(back_populates="trip")
-      albums: List["Album"] = Relationship(back_populates="trip")
-  */
-
-  const getTrips = async() =>{
+  
+ /*
+    const newTrip = {
+        name: tripName,
+        locations: savedLocations,
+        createdAt: new Date().toISOString(),
+      };
+    */
+ const getTrips = async() =>{
     let res = await api.get("/trips/getTrips");
     console.log(res.data);
     return res.data;
   }
-
-
+  
+  
   getTrips();
-
+  
 
   //Load trips from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("savedTrips");
-    if (stored) {
-      setTrips(JSON.parse(stored));
-    }
+    // TODO: Add location getting once events are implemented
+    const _fetchTrips = async () => {
+      const data = await getTrips().then( (data) => {return data.map(trip => ({ ...trip, locations: [] })); } );
+      setTrips(data);
+    };
+    _fetchTrips();
   }, []);
+
 
   // Delete a trip
   async function deleteTrip(index) {
