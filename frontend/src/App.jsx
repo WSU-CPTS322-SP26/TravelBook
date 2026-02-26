@@ -7,7 +7,7 @@ import TripsPage from "./pages/TripsPage";
 import DestinationSelectPage from "./pages/CalendarPage";
 import MapPage from "./pages/MapPage";
 import ChatPage from "./pages/ChatPage";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -55,6 +55,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    api.interceptors.request.clear();
     setUser(null);
   };
 

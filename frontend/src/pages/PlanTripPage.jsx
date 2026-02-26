@@ -41,7 +41,8 @@ export default function PlanTripPage() {
       id: generateId()
 
     }
-    const jsTrip = {
+
+    const newTrip = {
       id: newConversation.id,
       name: tripName,
       description:"",
@@ -49,22 +50,15 @@ export default function PlanTripPage() {
       locations: savedLocations,
       createdAt: new Date().toISOString(),
     };
-
-    const newTrip = {
-      id: newConversation.id,
-      name: tripName,
-      description:"",
-      conversation_id: newConversation.id,
-    };
     
     createTrip(newConversation, newTrip);
 
-    setSavedTrips((prev) => [...prev, jsTrip]);
+    setSavedTrips((prev) => [...prev, newTrip]);
 
     // Optional: persist trips
     localStorage.setItem(
       "savedTrips",
-      JSON.stringify([...savedTrips, jsTrip])
+      JSON.stringify([...savedTrips, newTrip])
     );
 
     // Reset
