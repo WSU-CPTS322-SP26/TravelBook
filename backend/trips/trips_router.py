@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from database.models import Trip, User
+from database.models import Trip, TripCreate, User
 from database.session import get_session
 from auth.auth_handler import get_current_user
 from typing import List
@@ -8,7 +8,7 @@ from typing import List
 router = APIRouter(tags=["trips"])
 
 @router.post("/create")
-def create_trip(trip: Trip,
+def create_trip(trip: TripCreate,
                 db: Session = Depends(get_session), 
                 current_user: User = Depends(get_current_user)):
     db_trip = Trip.model_validate(trip, update={"user_id": current_user.id})

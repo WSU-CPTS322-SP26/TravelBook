@@ -2,11 +2,32 @@
 // src/pages/TripListPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 export default function TripListPage() {
   const [trips, setTrips] = useState([]);
   const [openTripIndex, setOpenTripIndex] = useState(null);
   const navigate = useNavigate();
+
+  /*
+    class Trip(SQLModel, table=True):
+      id: Optional[int] = Field(default=1, primary_key=True)
+      name: str
+      description: Optional[str] = None
+      user_id: int = Field(foreign_key="user.id")
+      conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id")
+      conversation: Optional["Conversation"] = Relationship(back_populates="trip")
+      events: List["Event"] = Relationship(back_populates="trip")
+      albums: List["Album"] = Relationship(back_populates="trip")
+  */
+
+  const getTrips = async() =>{
+    let res = await api.get("/trips/getTrips");
+    console.log(res.data);
+  }
+
+  getTrips();
+
 
   // Load trips from localStorage
   useEffect(() => {

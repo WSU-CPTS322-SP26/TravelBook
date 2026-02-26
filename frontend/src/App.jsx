@@ -12,20 +12,28 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
 import api from "./api"
+import generateId from "./generateId";
 
 
 
 function App() {
   const [user, setUser] = useState(null);
 
-  let handleLogin = async (username, password) => {
-    try{
-      const params = new URLSearchParams();
+  const generateAccessToken = async(username, password) => {
+    const params = new URLSearchParams();
       params.append("username", username);
       params.append("password", password);
       let res = await api.post("/auth/token", params);
+      api.interceptors.request.use((config)=>{
+        config.headers.Authorization=`Bearer ${res.data.access_token}`;
+        return config;
+      });
+  }
 
-      setUser({ name: username, password: password});
+  let handleLogin = async (username, password) => {
+    try{
+      await generateAccessToken(username, password);
+      setUser({ name: username});
     } catch(err){
       console.log(err, "Attempting registration...");
       handleRegister(username, password);
@@ -35,11 +43,11 @@ function App() {
 
   let handleRegister = async (username, password) => {
     try{
-      const userId = Math.floor(Math.random() * 2147483647);
+      const userId = generateId();
       const params = {id: userId, email: username, username:username, password:password};
-      let res = await api.post("/auth/register", params);
+      await api.post("/auth/register", params).then( async ()=>{ await generateAccessToken(username, password) } );
 
-      setUser({ name: username, password: password});
+      setUser({ name: username});
     } catch(err){
       console.log(err)
     }

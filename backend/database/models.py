@@ -17,7 +17,7 @@ class UserConversationLink(SQLModel, table=True):
     conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id", primary_key=True)
 
 
-class User(UserBase, table=True):
+class User(UserBase, table=True):    
     hashed_password: str = Field()
     conversations: List["Conversation"] = Relationship(back_populates="users", link_model=UserConversationLink)
 
@@ -31,9 +31,15 @@ class UserUpdate(UserBase):
     email: Optional[str] = None
     password: Optional[str] = None
 
+# AI. Apperantly Postgres gets touchy about creating with the table model
+class TripCreate(SQLModel, table=False):
+    name: str
+    description: Optional[str] = None
+    conversation_id: Optional[int] = None
+# AI END
 
 class Trip(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     description: Optional[str] = None
     user_id: int = Field(foreign_key="user.id")

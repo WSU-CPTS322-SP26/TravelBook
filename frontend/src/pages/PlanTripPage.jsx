@@ -1,10 +1,18 @@
 // src/pages/PlanTripPage.jsx
 import React, { useState } from "react";
+import api from "../api";
+import generateId from "../generateId";
 
 export default function PlanTripPage() {
   const [tripName, setTripName] = useState("");
   const [savedLocations, setSavedLocations] = useState([]);
   const [savedTrips, setSavedTrips] = useState([]);
+
+  const createTrip = async (newConversation, newTrip) => {
+    await api.post("/messages/conversation", newConversation).then( async ()=>{
+      await api.post("/trips/create", newTrip);
+    });
+  }
 
   // Load saved locations from localStorage (optional)
   React.useEffect(() => {
@@ -16,20 +24,47 @@ export default function PlanTripPage() {
 
   // Save trip
   function saveTrip() {
-    if (!tripName || savedLocations.length === 0) return;
+    if (!tripName ) return;
 
-    const newTrip = {
+    /*
+    class Trip(SQLModel, table=True):
+      id: Optional[int] = Field(default=1, primary_key=True)
+      name: str
+      description: Optional[str] = None
+      user_id: int = Field(foreign_key="user.id")
+      conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id")
+      conversation: Optional["Conversation"] = Relationship(back_populates="trip")
+      events: List["Event"] = Relationship(back_populates="trip")
+      albums: List["Album"] = Relationship(back_populates="trip")
+  */
+    const newConversation = {
+      id: generateId()
+
+    }
+    const jsTrip = {
+      id: newConversation.id,
       name: tripName,
+      description:"",
+      conversation_id: newConversation.id,
       locations: savedLocations,
       createdAt: new Date().toISOString(),
     };
 
-    setSavedTrips((prev) => [...prev, newTrip]);
+    const newTrip = {
+      id: newConversation.id,
+      name: tripName,
+      description:"",
+      conversation_id: newConversation.id,
+    };
+    
+    createTrip(newConversation, newTrip);
+
+    setSavedTrips((prev) => [...prev, jsTrip]);
 
     // Optional: persist trips
     localStorage.setItem(
       "savedTrips",
-      JSON.stringify([...savedTrips, newTrip])
+      JSON.stringify([...savedTrips, jsTrip])
     );
 
     // Reset
