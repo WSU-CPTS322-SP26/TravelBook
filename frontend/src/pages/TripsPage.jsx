@@ -2,23 +2,47 @@
 // src/pages/TripListPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 export default function TripListPage() {
   const [trips, setTrips] = useState([]);
+  
   const [openTripIndex, setOpenTripIndex] = useState(null);
   const navigate = useNavigate();
+  
+ /*
+    const newTrip = {
+        name: tripName,
+        locations: savedLocations,
+        createdAt: new Date().toISOString(),
+      };
+    */
+ const getTrips = async() =>{
+    let res = await api.get("/trips/getTrips");
+    console.log(res.data);
+    return res.data;
+  }
+  
+  
+  getTrips();
+  
 
-  // Load trips from localStorage
+  //Load trips from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("savedTrips");
-    if (stored) {
-      setTrips(JSON.parse(stored));
-    }
+    // TODO: Add location getting once events are implemented
+    const _fetchTrips = async () => {
+      const data = await getTrips().then( (data) => {return data.map(trip => ({ ...trip, locations: [] })); } );
+      setTrips(data);
+    };
+    _fetchTrips();
   }, []);
 
+
   // Delete a trip
-  function deleteTrip(index) {
+  async function deleteTrip(index) {
     const updated = trips.filter((_, i) => i !== index);
+    let selected = await getTrips().then((data)=> { return data[index];});
+    api.delete(`/trips/${selected.id}`)
     setTrips(updated);
     localStorage.setItem("savedTrips", JSON.stringify(updated));
   }
