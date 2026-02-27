@@ -28,6 +28,7 @@ export default function TripListPage() {
   
 
   //Load trips from localStorage
+  // makeover heavily influenced by AI
   useEffect(() => {
     // TODO: Add location getting once events are implemented
     const _fetchTrips = async () => {

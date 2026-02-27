@@ -7,7 +7,7 @@ import os
 
 
 class UserBase(SQLModel):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     username: str
     email: str
 

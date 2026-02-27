@@ -11,62 +11,19 @@ import Navbar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
-import api from "./api"
-import generateId from "./generateId";
-
+import { useAuth } from "./context/AuthContext";
 
 
 function App() {
-  const [user, setUser] = useState(null);
-
-  const generateAccessToken = async(username, password) => {
-    const params = new URLSearchParams();
-      params.append("username", username);
-      params.append("password", password);
-      let res = await api.post("/auth/token", params);
-      api.interceptors.request.use((config)=>{
-        config.headers.Authorization=`Bearer ${res.data.access_token}`;
-        return config;
-      });
-  }
-
-  let handleLogin = async (username, password) => {
-    try{
-      await generateAccessToken(username, password);
-      setUser({ name: username});
-    } catch(err){
-      console.log(err, "Attempting registration...");
-      handleRegister(username, password);
-    }
-    
-  };
-
-  let handleRegister = async (username, password) => {
-    try{
-      const userId = generateId();
-      const params = {id: userId, email: username, username:username, password:password};
-      await api.post("/auth/register", params).then( async ()=>{ await generateAccessToken(username, password) } );
-
-      setUser({ name: username});
-    } catch(err){
-      console.log(err)
-    }
-    
-  };
-
-  const handleLogout = () => {
-    api.interceptors.request.clear();
-    setUser(null);
-  };
-
+  const {user, login, logout} = useAuth();
   return (
     <div className="app-root">
-      {user && <Navbar user={user} onLogout={handleLogout} />}
+      {user && <Navbar user={user} onLogout={logout} />}
       <Routes>
         <Route
           path="/login"
           element={
-            user ? <Navigate to="/trips" replace /> : <LoginPage onLogin={handleLogin} />
+            user ? <Navigate to="/trips" replace /> : <LoginPage onLogin={login} />
           }
         />
         <Route

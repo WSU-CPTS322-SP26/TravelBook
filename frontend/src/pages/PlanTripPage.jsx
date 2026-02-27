@@ -37,6 +37,7 @@ export default function PlanTripPage() {
       events: List["Event"] = Relationship(back_populates="trip")
       albums: List["Album"] = Relationship(back_populates="trip")
   */
+ // TODO: Make this not randomly generated
     const newConversation = {
       id: generateId()
 
