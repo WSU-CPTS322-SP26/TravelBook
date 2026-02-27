@@ -115,6 +115,7 @@ class ConnectionManager:
             await self.send_to_user(user_id, message)
 
         print(f"Broadcasted message to conversation {conversation_id} for users: {users_in_room}")
+        print(f"Message content: {message}")
 
 
     async def send_to_all(self, participant_ids: List[int], message: str):
