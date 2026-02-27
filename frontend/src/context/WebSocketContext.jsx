@@ -9,12 +9,12 @@ export const WebSocketProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   
   // Get user ID from your auth context or localStorage
-  const userId = localStorage.getItem('userId') || '42';
-  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/sendmsg';
+  const userId = localStorage.getItem('userId') || "1";
+  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
 
   useEffect(() => {
-    // Connect to WebSocket
-    wsService.connect(wsUrl);
+    // Connect to WebSocket with user_id in path
+    wsService.connect(`${wsUrl}/${userId}`);
 
     // Set up event listeners
     wsService.on('connected', () => {
@@ -74,6 +74,36 @@ export const WebSocketProvider = ({ children }) => {
     });
   };
 
+  const votePlace = (planId, placeId) => {
+    wsService.send({
+      type: 'vote_place',
+      plan_id: planId,
+      place_id: placeId
+    });
+  };
+
+  const removeVote = (planId, placeId) => {
+    wsService.send({
+      type: 'remove_vote',
+      plan_id: planId,
+      place_id: placeId
+    });
+  };
+
+  const joinConversation = (conversationId) => {
+    wsService.send({
+      type: 'join_conversation',
+      conversation_id: conversationId
+    });
+  };
+
+  const leaveConversation = (conversationId) => {
+    wsService.send({
+      type: 'leave_conversation',
+      conversation_id: conversationId
+    });
+  };
+
   // Generic send function
   const send = (data) => {
     wsService.send(data);
@@ -94,6 +124,10 @@ export const WebSocketProvider = ({ children }) => {
     sendMessage,
     addPlace,
     sendTyping,
+    votePlace,
+    removeVote,
+    joinConversation,
+    leaveConversation,
     send,
     subscribe
   };
