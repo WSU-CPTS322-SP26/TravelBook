@@ -1,5 +1,7 @@
 // src/pages/CalendarPage.jsx
 import React, { useEffect, useState } from "react";
+import { useMessage } from "../context/MessageContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function CalendarPage() {
   const [trips, setTrips] = useState([]);
@@ -10,6 +12,7 @@ export default function CalendarPage() {
 
   const [days, setDays] = useState([]);
   const [itinerary, setItinerary] = useState({});
+
 
   // Load saved trips from localStorage
   useEffect(() => {

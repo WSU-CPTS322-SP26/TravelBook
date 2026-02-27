@@ -25,7 +25,7 @@ export default function Navbar({ user, onLogout }) {
         </NavLink>
       </div>
       <div className="navbar-right">
-        <span className="navbar-user">{user?.name}</span>
+        <span className="navbar-user">{user?.username}</span>
         <button className="btn-secondary" onClick={onLogout}>
           Logout
         </button>

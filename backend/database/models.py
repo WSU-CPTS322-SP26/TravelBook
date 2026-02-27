@@ -50,7 +50,7 @@ class Trip(SQLModel, table=True):
 
 
 class Message(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     content: str
     sender_user_id: int = Field(foreign_key="user.id")
     receiver_user_id: int = Field(foreign_key="user.id")
@@ -60,7 +60,7 @@ class Message(SQLModel, table=True):
 
 
 class Conversation(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     users: List["User"] = Relationship(back_populates="conversations", link_model=UserConversationLink)
     messages: List["Message"] = Relationship(back_populates="conversation")
     trip: Optional["Trip"] = Relationship(back_populates="conversation")

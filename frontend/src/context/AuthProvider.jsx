@@ -23,19 +23,18 @@ function AuthProvider ({ children }) {
         setUser(username);
         try{
             await generateAccessToken(username, password);
-            setUser({ name: username});
+            setUser((await api.get("/auth/me")).data);
         } catch(err){
             console.log(err, "Attempting registration...");
             register(username, password); // TODO: it should not be done here...
         }
-        localStorage.setItem("token", token);
     };
 
     const register = async(username, password) => {
         try{
             const params = {email: username, username:username, password:password};
             await api.post("/auth/register", params).then( async ()=>{ await generateAccessToken(username, password) } );
-            setUser({ name: username} );
+            setUser((await api.get("/auth/me")).data );
         } catch(err){
             console.log(err)
         }
