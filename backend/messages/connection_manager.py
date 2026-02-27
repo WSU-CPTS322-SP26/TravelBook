@@ -2,7 +2,7 @@ from fastapi import WebSocket
 from typing import Dict, List, Set
 
 class ConnectionManager:
-    def __init__(self, websocket: WebSocket, user_id: int):
+    def __init__(self):
         self.active_connections: list[WebSocket] = []
 
         self.user_connections: Dict[int, List[WebSocket]] = {}
@@ -103,7 +103,7 @@ class ConnectionManager:
                 self.user_connections[user_id].remove(connection)
 
 
-    async def broadcast_to_conversation(self, conversation_id: int, message: str):
+    async def send_to_conversation(self, conversation_id: int, message: str):
         """Broadcast a message to all users in a conversation room"""
         if conversation_id not in self.conversation_rooms:
             print(f"No active users in conversation {conversation_id} to broadcast message.")
@@ -112,12 +112,12 @@ class ConnectionManager:
         users_in_room = self.conversation_rooms[conversation_id]
 
         for user_id in users_in_room:
-            await self.send_personal_message(user_id, message)
+            await self.send_to_user(user_id, message)
 
         print(f"Broadcasted message to conversation {conversation_id} for users: {users_in_room}")
 
 
-    async def broadcast_to_all(self, participant_ids: List[int], message: str):
+    async def send_to_all(self, participant_ids: List[int], message: str):
         """Broadcast a message to all users in a conversation room"""
         for user_id in participant_ids:
-            await self.send_personal_message(user_id, message)
+            await self.send_to_user(user_id, message)
