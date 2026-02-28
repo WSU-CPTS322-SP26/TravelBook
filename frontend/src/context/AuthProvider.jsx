@@ -5,7 +5,7 @@ import api from "../api";
 
 function AuthProvider ({ children }) {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem("token"));
+    const [token, setToken] = useState(null);
     
     const generateAccessToken = async(username, password) => {
         const params = new URLSearchParams();
@@ -15,6 +15,7 @@ function AuthProvider ({ children }) {
         setToken(res.data.access_token);
         api.interceptors.request.use((config)=>{
             config.headers.Authorization=`Bearer ${res.data.access_token}`;
+            setToken(res.data.access_token);
             return config;
         });
     }
@@ -42,6 +43,7 @@ function AuthProvider ({ children }) {
     
     const logout = () => {
         setUser(null);
+        setToken(null);
         api.interceptors.request.clear();
     };
 

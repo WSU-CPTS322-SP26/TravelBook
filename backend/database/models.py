@@ -74,7 +74,7 @@ class Location(SQLModel):
 
 
 class Event(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     description: Optional[str] = None
     trip_id: Optional[int] = Field(default=1, foreign_key="trip.id")

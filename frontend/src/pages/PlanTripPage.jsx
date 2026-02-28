@@ -2,17 +2,14 @@
 import React, { useState } from "react";
 import api from "../api";
 import generateId from "../generateId";
+import { useTrip } from "../context/TripContext";
 
 export default function PlanTripPage() {
   const [tripName, setTripName] = useState("");
   const [savedLocations, setSavedLocations] = useState([]);
   const [savedTrips, setSavedTrips] = useState([]);
+  const { createTrip } = useTrip();
 
-  const createTrip = async (newConversation, newTrip) => {
-    await api.post("/messages/conversation", newConversation).then( async ()=>{
-      await api.post("/trips/create", newTrip);
-    });
-  }
 
   // Load saved locations from localStorage (optional)
   React.useEffect(() => {
@@ -37,20 +34,6 @@ export default function PlanTripPage() {
       events: List["Event"] = Relationship(back_populates="trip")
       albums: List["Album"] = Relationship(back_populates="trip")
   */
- // TODO: Make this not randomly generated
-    const newConversation = {
-      id: generateId()
-
-    }
-
-    const dbTrip = {
-      id: newConversation.id,
-      name: tripName,
-      description:"",
-      conversation_id: newConversation.id,
-      locations: savedLocations,
-      createdAt: new Date().toISOString(),
-    };
 
     const newTrip = {
       name: tripName,
@@ -59,8 +42,7 @@ export default function PlanTripPage() {
     };
     
     setSavedTrips((prev) => [...prev, newTrip]);
-    
-    createTrip(newConversation, dbTrip);
+    createTrip(tripName)
 
 
     // Optional: persist trips

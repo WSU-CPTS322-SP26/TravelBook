@@ -34,6 +34,13 @@ def get_event_by_id(event_id: int,
         raise HTTPException(status_code=404, detail="Event not found")
     return event
 
+@router.get("/{trip_id}", response_model=List[Event])
+def get_events_by_date(trip_id: int,
+            db: Session = Depends(get_session), 
+            current_user: User = Depends(get_current_user)):
+    events = db.exec(select(Event).where(Event.user_id == current_user.id, Event.trip_id == trip_id)).all()
+    return events
+
 @router.delete("/{event_id}")
 def delete_event(event_id: int,
             db: Session = Depends(get_session), 
