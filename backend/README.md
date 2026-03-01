@@ -18,3 +18,8 @@ To install Python: `uv python install 3.13`
 Initialize environment: `uv venv`
 Activate environment: `source .venv/bin/activate`
 Install all necessary libraries: `pip install -r requirements.txt`
+
+## Running the project
+After activate virtual enviroment
+run main.py
+Go to http://localhost:8000/docs

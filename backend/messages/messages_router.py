@@ -4,6 +4,7 @@ from database.models import Message, Conversation, User
 from database.session import get_session
 from auth.auth_handler import get_current_user
 from typing import List
+from .messages_db import *
 
 router = APIRouter(tags=["messages"])
 
@@ -11,6 +12,7 @@ router = APIRouter(tags=["messages"])
 def send_message(message: Message,
                 db: Session = Depends(get_session), 
                 current_user: User = Depends(get_current_user)):
+    
     # Validate message has a conversation_id
     if message.conversation_id is None:
         raise HTTPException(status_code=400, detail=f"Message must be associated with a conversation {message}")
@@ -24,27 +26,20 @@ def send_message(message: Message,
     
     db_message = Message.model_validate(message, update={"sender_user_id": current_user.id})
     
-    # Add message to conversation's message list
-    conversation.messages.append(db_message)
-    db.add(db_message)
-    db.add(conversation)
-    db.commit()
-    db.refresh(db_message)
+
+    return save_message(db_message, conversation, db)
     
-    return db_message
 
 @router.post("/conversation")
 def create_conversation(conversation: Conversation,
                         db: Session = Depends(get_session), 
                         current_user: User = Depends(get_current_user)):
     db_conversation = Conversation.model_validate(conversation, update={"users": [current_user]})
-    db.add(db_conversation)
-    db.commit()
-    db.refresh(db_conversation)
-    return db_conversation
+
+    return create_conversation_handler(db_conversation, db)
 
 @router.get("/conversation/{conversation_id}", response_model=List[Message])
-def get_conversation(conversation_id: int,
+def get_conversation_handler(conversation_id: int,
                      db: Session = Depends(get_session), 
                      current_user: User = Depends(get_current_user)):
     conversation = db.exec(select(Conversation).where(Conversation.id == conversation_id)).first()
