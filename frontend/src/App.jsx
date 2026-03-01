@@ -10,8 +10,6 @@ import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
-import api from "./api"
-import generateId from "./generateId";
 
 import { WebSocketProvider } from "./context/WebSocketContext";
 
