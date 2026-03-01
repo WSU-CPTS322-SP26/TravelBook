@@ -72,6 +72,12 @@ class Location(SQLModel):
     name: str
     address: Optional[str] = None
 
+class EventCreate(SQLModel, table=False):
+    name: str
+    description: Optional[str] = None
+    trip_id: Optional[int] = None
+    date: datetime
+    location: dict
 
 class Event(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

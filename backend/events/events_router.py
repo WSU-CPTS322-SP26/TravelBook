@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from database.models import User, Event
+from database.models import User, Event, EventCreate
 from database.session import get_session
 from auth.auth_handler import get_current_user
 from typing import List
@@ -8,7 +8,7 @@ from typing import List
 router = APIRouter(tags=["events"])
 
 @router.post("/create")
-def create_event(event: Event,
+def create_event(event: EventCreate,
                  db: Session = Depends(get_session), 
                  current_user: User = Depends(get_current_user)):
     db_event = Event.model_validate(event, update={"user_id": current_user.id})
@@ -18,14 +18,14 @@ def create_event(event: Event,
     return db_event
 
 
-@router.get("/{date}", response_model=List[Event])
+@router.get("/by-date/{date}", response_model=List[Event])
 def get_events_by_date(date: str,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
     events = db.exec(select(Event).where(Event.user_id == current_user.id, Event.date == date)).all()
     return events
 
-@router.get("/{event_id}", response_model=Event)
+@router.get("/by-id/{event_id}", response_model=Event)
 def get_event_by_id(event_id: int,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
@@ -34,8 +34,8 @@ def get_event_by_id(event_id: int,
         raise HTTPException(status_code=404, detail="Event not found")
     return event
 
-@router.get("/{trip_id}", response_model=List[Event])
-def get_events_by_date(trip_id: int,
+@router.get("/by-trip/{trip_id}", response_model=List[Event])
+def get_events_by_trip(trip_id: int,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
     events = db.exec(select(Event).where(Event.user_id == current_user.id, Event.trip_id == trip_id)).all()

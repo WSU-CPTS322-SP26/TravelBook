@@ -13,24 +13,23 @@ function EventProvider({children}){
     // trip: "Trip" = Relationship(back_populates="events")
 
     const createEvent = async(name, description, tripId, date, location) => {
-        let event = await api.post('/events/create', {name: name, description: description, trip_id:tripId, date:date, location:location } ).then( (res)=>{return res.data} );
+        let event = await api.post('/events/create', {name: name, description: description, trip_id: tripId, date:date, location:location } ).then( (res)=>{return res.data} );
         return event;
     }
     
 
-    // date is a string or some unspecified format??? TODO: no
     const getEventsByDate = async(date) => {
-        let events = await api.get(`/events/${date}`);
+        let events = await api.get(`/events/by-date/${date}`).then( (res) => {return res.data; } );
         return events;
     }
     
     const getEventById = async(eventId) => {
-        let events = await api.get(`/events/${eventId}`);
+        let events = await api.get(`/events/by-id/${eventId}`).then( (res) => {return res.data; } );
         return events;
     }
 
-    const getEventsByTrip = async(eventId) => {
-        let events = await api.get(`/events/${eventId}`);
+    const getEventsByTrip = async(tripId) => {
+        let events = await api.get(`/events/by-trip/${tripId}`).then( (res) => {return res.data; } );
         return events;
     }
     
