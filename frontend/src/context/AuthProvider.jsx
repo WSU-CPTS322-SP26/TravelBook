@@ -1,23 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {AuthContext} from './AuthContext'
 import api from "../api";
 
 
 function AuthProvider ({ children }) {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
-    
+    const [token, setToken] = useState(localStorage.getItem("token")); 
+
+    // log back in if token exists and valid
+    useEffect(() => {
+        if (!token) return;
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`; 
+        api.get("/auth/me").then(res => setUser(res.data)).catch(() => {
+            setToken(null);
+            localStorage.removeItem("token");
+        });
+    }, []);
+
     const generateAccessToken = async(username, password) => {
         const params = new URLSearchParams();
         params.append("username", username);
         params.append("password", password);
         let res = await api.post("/auth/token", params);
-        setToken(res.data.access_token);
-        api.interceptors.request.use((config)=>{
-            config.headers.Authorization=`Bearer ${res.data.access_token}`;
-            setToken(res.data.access_token);
-            return config;
-        });
+        const newToken = res.data.access_token;
+        setToken(newToken);
+        localStorage.setItem("token", newToken);
+        api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
     }
 
     const login = async (username, password) => {
@@ -42,13 +50,14 @@ function AuthProvider ({ children }) {
     }
     
     const logout = () => {
-        setUser(null);
+        setUser(null);  
         setToken(null);
+        localStorage.removeItem("token")
         api.interceptors.request.clear();
     };
 
-    const currentUser = () => {
-        
+    const currentUser = async () => {
+        return await api.get("/auth/me");
     }
     
     return (

@@ -1,16 +1,18 @@
 // src/pages/LoginPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
+  const {currentUser, token, setToken} = useAuth();
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
     onLogin(username.trim(), password.trim());
   };
 
+  
   return (
     <div className="auth-container">
       <div className="auth-card">

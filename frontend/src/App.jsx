@@ -16,6 +16,7 @@ import { useAuth } from "./context/AuthContext";
 
 function App() {
   const {user, login, logout} = useAuth();
+
   return (
     <div className="app-root">
       {user && <Navbar user={user} onLogout={logout} />}
