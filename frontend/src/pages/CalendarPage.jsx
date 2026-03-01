@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import { useTrip } from "../context/TripContext";
 import { useEvent } from "../context/EventContext";
 
 export default function CalendarPage() {
-  const { activeTrip } = useTrip();
+  const { activeTrip, setTripDate} = useTrip();
   const { getEventsByTrip, updateEvent } = useEvent();
 
   const [events, setEvents] = useState([]);
@@ -13,6 +13,15 @@ export default function CalendarPage() {
   const [itinerary, setItinerary] = useState({});
 
   useEffect(() => {
+  if (!activeTrip) return;
+  if(activeTrip.start_date && activeTrip.end_date){
+    setStartDate(activeTrip.start_date.split("T")[0]);
+    setEndDate(activeTrip.end_date.split("T")[0]);
+  }
+}, [activeTrip?.id]);
+
+  useEffect(() => {
+
     if (!activeTrip) return;
     getEventsByTrip(activeTrip.id).then((data) => {
       setEvents(data)
@@ -34,7 +43,10 @@ export default function CalendarPage() {
   useEffect(() => {
     if (!startDate || !endDate) return;
     const start = new Date(startDate);
+    start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
     const end = new Date(endDate);
+    end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
+    setTripDate(activeTrip.id, start, end)
     const dayList = [];
     let current = new Date(start);
     while (current <= end) {

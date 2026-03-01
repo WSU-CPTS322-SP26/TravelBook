@@ -31,12 +31,12 @@ class UserUpdate(UserBase):
     email: Optional[str] = None
     password: Optional[str] = None
 
-# AI. Apperantly Postgres gets touchy about creating with the table model
 class TripCreate(SQLModel, table=False):
     name: str
     description: Optional[str] = None
     conversation_id: Optional[int] = None
-# AI END
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
 
 class Trip(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -45,8 +45,11 @@ class Trip(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id")
     conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id")
     conversation: Optional["Conversation"] = Relationship(back_populates="trip")
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     events: List["Event"] = Relationship(back_populates="trip")
     albums: List["Album"] = Relationship(back_populates="trip")
+
 
 
 class Message(SQLModel, table=True):

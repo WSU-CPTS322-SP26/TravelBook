@@ -18,7 +18,7 @@ function TripProvider({children}){
   let [activeTrip, setActiveTrip] = useState(null);
 
   const createTrip = async (name, conversationId, description) => {
-    await api.post("/trips/create", {name:name, conversation_id:conversationId, description:description });
+    await api.post("/trips/create", {name:name, conversation_id:conversationId, description:description});
   };
 
   const getTrips = async() =>{
@@ -26,15 +26,29 @@ function TripProvider({children}){
     return res.data;
   }
 
+  const getTrip = async(trip_id) =>{
+    let res = await api.get(`/trips/${trip_id}`);
+    return res.data;
+  }
+
   const deleteTrip = async(tripId) => {
     await api.delete(`/trips/${tripId}`).then( () => {
       if(activeTrip && tripId == activeTrip.id) setActiveTrip(null);
-    } )
-    
+    } )    
+  }
+
+  const setTripDate = async(tripId, start, end) => {
+    let oldTrip = await getTrip(tripId);
+    console.log(`start:{${start}}, end{${end}}`)
+    let res = await api.put(`/trips/${tripId}`, {name: oldTrip.name, description: oldTrip.description, start_date:start, end_date:end})
+    if(activeTrip && activeTrip.id == tripId){
+      setActiveTrip(res.data); 
+    }
+    return res.data;
   }
 
   return (
-      <TripContext.Provider value={{activeTrip, createTrip, getTrips, deleteTrip, setActiveTrip}}>
+      <TripContext.Provider value={{activeTrip, createTrip, getTrips, deleteTrip, setActiveTrip, setTripDate, getTrip}}>
         {children}
       </TripContext.Provider>
   );
