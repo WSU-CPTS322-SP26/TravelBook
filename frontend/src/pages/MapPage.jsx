@@ -1,5 +1,7 @@
 // src/pages/MapPage.jsx
 import React, { useEffect, useRef, useState } from "react";
+import { useEvent } from "../context/EventContext";
+import { useTrip } from "../context/TripContext";
 
 export default function MapPage() {
   const mapRef = useRef(null);
@@ -7,8 +9,12 @@ export default function MapPage() {
   const mapInstance = useRef(null);
   const markerRef = useRef(null);
 
+  const {createEvent} = useEvent();
+  const {activeTrip} = useTrip();
+
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [savedLocations, setSavedLocations] = useState([]);
+
 
   useEffect(() => {
     if (!window.google || !window.google.maps) return;
@@ -98,7 +104,7 @@ export default function MapPage() {
             geocoder.geocode({ location: latLng }, (res) => {
               if (res && res[0]) resolve(res[0].formatted_address);
               else resolve("Unnamed location");
-            });
+            }); 
           }
         }
       );
@@ -106,12 +112,20 @@ export default function MapPage() {
   }
 
   // Save the selected location
-  function saveLocation() {
+  async function saveLocation() {
     if (!selectedLocation) return;
+
+    await createEvent(
+      selectedLocation.name,
+      "",
+      activeTrip.id,
+      new Date().toISOString(),
+      { lat: selectedLocation.lat, lng: selectedLocation.lng, name: selectedLocation.name }
+    );
 
     setSavedLocations((prev) => [...prev, selectedLocation]);
     setSelectedLocation(null);
-    localStorage.setItem("savedLocations", JSON.stringify([...savedLocations, selectedLocation]));
+    //localStorage.setItem("savedLocations", JSON.stringify([...savedLocations, selectedLocation]));
   }
 
   // NEW: Delete a saved location

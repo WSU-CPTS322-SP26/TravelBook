@@ -17,6 +17,7 @@ def create_trip(trip: TripCreate,
     db.refresh(db_trip)
     return db_trip
 
+
 @router.get("/getTrips", response_model=List[Trip])
 def get_trips(db: Session = Depends(get_session), 
               current_user: User = Depends(get_current_user)):
@@ -31,6 +32,27 @@ def get_trip_by_id(trip_id: int,
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
     return trip
+
+@router.put("/{trip_id}")
+def update_trip(trip_id: int,
+            trip: TripCreate,
+            db: Session = Depends(get_session), 
+            current_user: User = Depends(get_current_user)):
+    db_trip = db.exec(select(Trip).where(Trip.id == trip_id, Trip.user_id == current_user.id)).first()
+    if not db_trip:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    print(db_trip.start_date)
+    print(db_trip.end_date)
+    db_trip.name = trip.name
+    db_trip.description = trip.description
+    db_trip.start_date = trip.start_date
+    db_trip.end_date = trip.end_date
+    
+    db.add(db_trip)
+    db.commit()
+    db.refresh(db_trip)
+    return db_trip
 
 @router.delete("/{trip_id}")
 def delete_trip(trip_id: int,
