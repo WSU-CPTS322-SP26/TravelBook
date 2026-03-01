@@ -3,12 +3,14 @@ import React, { useState } from "react";
 import api from "../api";
 import generateId from "../generateId";
 import { useTrip } from "../context/TripContext";
+import { useMessage } from "../context/MessageContext";
 
 export default function PlanTripPage() {
   const [tripName, setTripName] = useState("");
   const [savedLocations, setSavedLocations] = useState([]);
   const [savedTrips, setSavedTrips] = useState([]);
   const { createTrip } = useTrip();
+  const { createConversation } = useMessage();
 
 
   // Load saved locations from localStorage (optional)
@@ -42,7 +44,7 @@ export default function PlanTripPage() {
     };
     
     setSavedTrips((prev) => [...prev, newTrip]);
-    createTrip(tripName)
+    createConversation().then( (cId) => { createTrip(tripName, cId, "") } );
 
 
     // Optional: persist trips

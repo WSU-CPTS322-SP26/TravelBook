@@ -18,7 +18,7 @@ function TripProvider({children}){
   let [activeTrip, setActiveTrip] = useState(null);
 
   const createTrip = async (name, conversationId, description) => {
-    await api.post("/trips/create", {name:name, description:description, conversation_id:conversationId });
+    await api.post("/trips/create", {name:name, conversation_id:conversationId, description:description });
   };
 
   const getTrips = async() =>{

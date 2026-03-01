@@ -3,9 +3,17 @@ import api from "../api";
 
 function EventProvider({children}){
 
+    // class Event(SQLModel, table=True):
+    // id: Optional[int] = Field(default=None, primary_key=True)
+    // name: str
+    // description: Optional[str] = None
+    // trip_id: Optional[int] = Field(default=1, foreign_key="trip.id")
+    // date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
+    // location: dict = Field(sa_column=Column(JSON, nullable=False))
+    // trip: "Trip" = Relationship(back_populates="events")
 
     const createEvent = async(name, description, tripId, date, location) => {
-        let event = await api.put('/events/create', {name:name, description:description, trip_id:tripId, date:date, location:location } ).then( (res)=>{return res.data} );
+        let event = await api.post('/events/create', {name: name, description: description, trip_id:tripId, date:date, location:location } ).then( (res)=>{return res.data} );
         return event;
     }
     

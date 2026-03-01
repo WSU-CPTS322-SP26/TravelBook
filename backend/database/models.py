@@ -75,9 +75,10 @@ class Location(SQLModel):
 
 class Event(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
     name: str
     description: Optional[str] = None
-    trip_id: Optional[int] = Field(default=1, foreign_key="trip.id")
+    trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
     date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
     location: dict = Field(sa_column=Column(JSON, nullable=False))
     trip: "Trip" = Relationship(back_populates="events")
