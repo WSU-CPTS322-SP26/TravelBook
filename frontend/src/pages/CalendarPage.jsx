@@ -4,7 +4,7 @@ import { useEvent } from "../context/EventContext";
 
 export default function CalendarPage() {
   const { activeTrip } = useTrip();
-  const { getEventsByTrip } = useEvent();
+  const { getEventsByTrip, updateEvent } = useEvent();
 
   const [events, setEvents] = useState([]);
   const [startDate, setStartDate] = useState("");
@@ -12,10 +12,22 @@ export default function CalendarPage() {
   const [days, setDays] = useState([]);
   const [itinerary, setItinerary] = useState({});
 
-  // fetch events when activeTrip changes
   useEffect(() => {
     if (!activeTrip) return;
-    getEventsByTrip(activeTrip.id).then((data) => setEvents(data));
+    getEventsByTrip(activeTrip.id).then((data) => {
+      setEvents(data)
+      const pre = {};
+      data.forEach(event => {
+        if (!event.date || !startDate || !endDate) return;
+        const eventDate = new Date(event.date);
+        days.forEach((day, index) => {
+          if (day.toDateString() === eventDate.toDateString()) {
+            pre[index] = event.name;
+          }
+        });
+      });
+      setItinerary(pre)
+    });
   }, [activeTrip]);
 
   // generate days when date range changes
@@ -32,8 +44,17 @@ export default function CalendarPage() {
     setDays(dayList);
   }, [startDate, endDate]);
 
-  function assignEvent(dayIndex, eventName) {
+  async function assignEvent(dayIndex, eventName) {
+    if(Object.entries(itinerary).find( ([i, name]) => name==eventName ) && eventName!="") {
+      alert(`${eventName} already belongs to a day!`);
+      return;
+    }
     setItinerary((prev) => ({ ...prev, [dayIndex]: eventName }));
+    const event = events.find( (event) => event.name==eventName );
+    const day = days[dayIndex]
+    if(!event) return;
+
+    await updateEvent( event.id, event.name, event.description, event.trip_id, day.toISOString(), event.location);
   }
 
   return (
@@ -93,22 +114,15 @@ export default function CalendarPage() {
                   </select>
                 </div>
               ))}
-
-              <button
-                onClick={() => alert("TODO: save itinerary to backend!")}
-                style={{
-                  marginTop: "20px",
-                  padding: "12px 18px",
-                  borderRadius: "8px",
-                  background: "#4CAF50",
-                  color: "white",
-                  border: "none",
-                  cursor: "pointer",
-                  width: "100%",
-                }}
-              >
-                Save Itinerary
-              </button>
+              <p style={{
+                color: "rgba(255,255,255,0.35)",
+                fontSize: "0.85em",
+                borderBottom: "1px solid rgba(255,255,255,0.15)",
+                paddingBottom: "-5px",
+                display: "inline-block",
+              }}>
+                Automatically Saves
+              </p>
             </div>
           )}
         </>

@@ -47,7 +47,7 @@ function EventProvider({children}){
 
     const updateEvent = async(eventId, name, description, tripId, date, location) => {
         let event = await api.put(`/events/${eventId}`, 
-            {id: eventId, name:name, description:description, trip_id:tripId, date:date, location:location} ).then( (res)=>{return res.data} );
+            {name:name, description:description, trip_id:tripId, date:date, location:location} ).then( (res)=>{return res.data} );
         return event;
     }
     

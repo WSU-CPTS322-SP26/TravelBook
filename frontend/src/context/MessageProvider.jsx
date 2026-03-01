@@ -7,8 +7,8 @@ function MessageProvider({children}){
     
 
     const sendMessage = async(msgContent, conversationId, reciever) => {
-        api.post("/messages/send", {conversation_id:conversationId, content:msgContent, receiver_user_id:reciever}); // TODO: who is the reciever in a group chat
-
+        const res = await api.post("/messages/send", {conversation_id:conversationId, content:msgContent, receiver_user_id:reciever}); // TODO: who is the reciever in a group chat
+        return res.data;
     }
 
     const createConversation = async() => {

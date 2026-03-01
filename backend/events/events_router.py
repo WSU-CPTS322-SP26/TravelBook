@@ -54,15 +54,20 @@ def delete_event(event_id: int,
 
 @router.put("/{event_id}", response_model=Event)
 def update_event(event_id: int,
-            event: Event,
+            event: EventCreate,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
     db_event = db.exec(select(Event).where(Event.id == event_id, Event.user_id == current_user.id)).first()
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
     
-    updated_event = Event.model_validate(event, update={"id": event_id, "user_id": current_user.id})
-    db.add(updated_event)
+    db_event.name = event.name
+    db_event.description = event.description
+    db_event.trip_id = event.trip_id
+    db_event.date = event.date
+    db_event.location = event.location
+    
+    db.add(db_event)
     db.commit()
-    db.refresh(updated_event)
-    return updated_event
+    db.refresh(db_event)
+    return db_event
