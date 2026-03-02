@@ -10,3 +10,5 @@ passlib
 python-multipart
 pytest
 httpx
+websockets
+psycopg2

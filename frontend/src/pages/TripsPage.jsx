@@ -2,23 +2,44 @@
 // src/pages/TripListPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
+import { useTrip } from "../context/TripContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function TripListPage() {
   const [trips, setTrips] = useState([]);
+  
   const [openTripIndex, setOpenTripIndex] = useState(null);
   const navigate = useNavigate();
+  const {getTrips, setActiveTrip, deleteTrip} = useTrip();
+  const { token } = useAuth();
+  
+ /*
+    const newTrip = {
+        name: tripName,
+        locations: savedLocations,
+        createdAt: new Date().toISOString(),
+      };
+    */
+  
 
-  // Load trips from localStorage
+  // makeover heavily influenced by AI
   useEffect(() => {
-    const stored = localStorage.getItem("savedTrips");
-    if (stored) {
-      setTrips(JSON.parse(stored));
-    }
-  }, []);
+    // TODO: Add location getting once events are implemented
+    const _fetchTrips = async () => {
+      if(!token) { return; }
+      const data = await getTrips().then( (data) => {return data.map(trip => ({ ...trip, locations: [] })); } );
+      setTrips(data);
+    };
+    _fetchTrips();
+  }, [token]);
+
 
   // Delete a trip
-  function deleteTrip(index) {
+  async function deleteTripFromList(index) {
     const updated = trips.filter((_, i) => i !== index);
+    let selected = await getTrips().then((data)=> { return data[index];});
+    deleteTrip(selected.id);
     setTrips(updated);
     localStorage.setItem("savedTrips", JSON.stringify(updated));
   }
@@ -65,23 +86,41 @@ export default function TripListPage() {
                   </div>
                 )}
               </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTrip(trip); // from TripContext
+                  }}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "6px",
+                    background: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Set Active
+                </button>
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteTrip(index);
-                }}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: "6px",
-                  background: "#d9534f",
-                  color: "white",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Delete
-              </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTripFromList(index);
+                  }}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "6px",
+                    background: "#d9534f",
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
 
             {/* Trip Details */}

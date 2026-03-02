@@ -1,10 +1,17 @@
 // src/pages/PlanTripPage.jsx
 import React, { useState } from "react";
+import api from "../api";
+import generateId from "../generateId";
+import { useTrip } from "../context/TripContext";
+import { useMessage } from "../context/MessageContext";
 
 export default function PlanTripPage() {
   const [tripName, setTripName] = useState("");
   const [savedLocations, setSavedLocations] = useState([]);
   const [savedTrips, setSavedTrips] = useState([]);
+  const { createTrip } = useTrip();
+  const { createConversation } = useMessage();
+
 
   // Load saved locations from localStorage (optional)
   React.useEffect(() => {
@@ -16,15 +23,29 @@ export default function PlanTripPage() {
 
   // Save trip
   function saveTrip() {
-    if (!tripName || savedLocations.length === 0) return;
+    if (!tripName ) return;
+
+    /*
+    class Trip(SQLModel, table=True):
+      id: Optional[int] = Field(default=1, primary_key=True)
+      name: str
+      description: Optional[str] = None
+      user_id: int = Field(foreign_key="user.id")
+      conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id")
+      conversation: Optional["Conversation"] = Relationship(back_populates="trip")
+      events: List["Event"] = Relationship(back_populates="trip")
+      albums: List["Album"] = Relationship(back_populates="trip")
+  */
 
     const newTrip = {
       name: tripName,
       locations: savedLocations,
       createdAt: new Date().toISOString(),
     };
-
+    
     setSavedTrips((prev) => [...prev, newTrip]);
+    createConversation().then( (cId) => { createTrip(tripName, cId, "") } );
+
 
     // Optional: persist trips
     localStorage.setItem(

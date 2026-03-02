@@ -7,7 +7,7 @@ import os
 
 
 class UserBase(SQLModel):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     username: str
     email: str
 
@@ -17,7 +17,7 @@ class UserConversationLink(SQLModel, table=True):
     conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id", primary_key=True)
 
 
-class User(UserBase, table=True):
+class User(UserBase, table=True):    
     hashed_password: str = Field()
     conversations: List["Conversation"] = Relationship(back_populates="users", link_model=UserConversationLink)
 
@@ -31,20 +31,29 @@ class UserUpdate(UserBase):
     email: Optional[str] = None
     password: Optional[str] = None
 
+class TripCreate(SQLModel, table=False):
+    name: str
+    description: Optional[str] = None
+    conversation_id: Optional[int] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
 
 class Trip(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     description: Optional[str] = None
     user_id: int = Field(foreign_key="user.id")
     conversation_id: Optional[int] = Field(default=1, foreign_key="conversation.id")
     conversation: Optional["Conversation"] = Relationship(back_populates="trip")
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     events: List["Event"] = Relationship(back_populates="trip")
     albums: List["Album"] = Relationship(back_populates="trip")
 
 
+
 class Message(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     content: str
     sender_user_id: int = Field(foreign_key="user.id")
     receiver_user_id: int = Field(foreign_key="user.id")
@@ -54,7 +63,7 @@ class Message(SQLModel, table=True):
 
 
 class Conversation(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     users: List["User"] = Relationship(back_populates="conversations", link_model=UserConversationLink)
     messages: List["Message"] = Relationship(back_populates="conversation")
     trip: Optional["Trip"] = Relationship(back_populates="conversation")
@@ -66,12 +75,19 @@ class Location(SQLModel):
     name: str
     address: Optional[str] = None
 
-
-class Event(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+class EventCreate(SQLModel, table=False):
     name: str
     description: Optional[str] = None
-    trip_id: Optional[int] = Field(default=1, foreign_key="trip.id")
+    trip_id: Optional[int] = None
+    date: datetime
+    location: dict
+
+class Event(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    name: str
+    description: Optional[str] = None
+    trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
     date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
     location: dict = Field(sa_column=Column(JSON, nullable=False))
     trip: "Trip" = Relationship(back_populates="events")
