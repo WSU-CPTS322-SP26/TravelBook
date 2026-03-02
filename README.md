@@ -7,31 +7,54 @@ In TravelBook users create an account, build trips with custom names and descrip
 ## Installation
 ### Prerequisites
 Git
+
 Node.js (v18+) and npm
+
 Python 3.13
+
 uv — Python package and environment manager (docs.astral.sh/uv)
+
 macOS/Linux: curl -LsSf https://astral.sh/uv/install.sh | sh
+
 Windows: powershell -c "irm https://astral.sh/uv/install.ps1 | more"
+
 PostgreSQL a running PostgreSQL instance with a database created for this project
+
 Google Maps API Key with the Maps JavaScript API and Places API enabled
+
 ### Add-ons
 Backend (installed with pip install -r requirements.txt)
+
 fastapiWeb: framework for the REST API
+
 uvicornASGI: server to run FastAPI
+
 sqlmodelORM: for defining and querying database models
+
 psycopg2PostgreSQL: database driver
+
 bcrypt / passlib: Password hashing
+
 pyJWT: JSON Web Token creation and validation
+
 python-multipart: Form data parsing (used for OAuth2 login form)
+
 websockets: WebSocket support for real-time chat
+
 pydantic: Data validation
+
 python-dotenv (dotenv): Loads environment variables from .env
+
 pytest / httpx: Testing framework and async HTTP client for tests
 
 Frontend (installed with npm install)
+
 react / react-dom: UI framework
+
 react-router-dom: Client-side routing
+
 axios: HTTP client for API requests
+
 vite: Frontend build tool and dev server
 
 ### Installation Steps
@@ -41,23 +64,37 @@ cd TravelBook
 
 2. Set up backend
 cd backend
+
 uv python install 3.13
+
 uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+source .venv/bin/activate 
+
+# On Windows: .venv\Scripts\activate
+
 pip install -r requirements.txt
 
 create a .env file inside the backend folder with your database credentials
 
 Run main.py to start the backend
+
 The API will be available at http://localhost:8000
 
 3. Set up the Frontend in new terminal
+
 cd frontend
+
 npm install
+
 Open src/hooks/useGoogleMaps.jsx and replace the empty string with your Google Maps API Key
+
 const GOOGLE_MAPS_API_KEY = "YOUR_API_KEY_HERE";
+
 Then start the server
+
 npm run dev
+
 The app will be available at http://localhost:5173
 
 ## Functionality
