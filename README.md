@@ -3,7 +3,6 @@
 ### One-sentence description of the project
 TravelBook is a web application used to organize trips with friends including group chats, destination finding and calendar planning.
 ### Additional information about the project
-TODO: Write a compelling/creative/informative project description / summary
 In TravelBook users create an account, build trips with custom names and descriptions, and invite friends to collaborate. Each trip gets its own group chat so conversations stay organized around the trip itself. A built-in map view lets you browse and pin destinations, while the calendar keeps everyone aligned on dates and events. When you're ready to commit, the trip planner lets you finalize your saved locations into a named trip stored in the database. TravelBook uses a FastAPI + PostgreSQL backend with JWT-based authentication, and a React + Vite frontend with protected routes and persistent login state. The two communicate over a clean REST API.
 ## Installation
 ### Prerequisites
@@ -88,7 +87,6 @@ Open the Chat page to access the real-time group conversation linked to your act
 - Google Maps API key is hardcoded. The API key in frontend/src/hooks/useGoogleMaps.jsx is an empty string by default and must be manually inserted before the map features will work. Ideally this should be sourced from an environment variable
 
 ## Contributing
-TODO: Leave the steps below if you want others to contribute to your project.
 1. Fork it!
 2. Create your feature branch: `git checkout -b my-new-feature`
 3. Commit your changes: `git commit -am 'Add some feature'`
