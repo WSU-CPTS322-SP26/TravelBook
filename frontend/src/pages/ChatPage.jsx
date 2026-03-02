@@ -2,8 +2,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import {useWebSocketContext } from "../context/WebSocketContext"
 import {WS_EVENTS} from "../services/constant";
+import { useAuth } from "../context/AuthContext";
+import { useTrip } from "../context/TripContext";
+import { useMessage } from "../context/MessageContext";
 
 export default function ChatPage() {
+  const {activeTrip} = useTrip();
+  const {user} = useAuth();
+  const {getConversation, sendMessage: sendContextMessage} = useMessage();
 
   const { 
     sendMessage, 
@@ -19,8 +25,8 @@ export default function ChatPage() {
   const [typingUsers, setTypingUsers] = useState([]);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const currentUserId = "1"; // Get from auth context
-  const conversationId = 1; // Get from route params or context
+  const currentUserId = user.id;
+  const conversationId = (activeTrip) ? activeTrip.id : -1; // Get from route params or context
 
 
   // Join / leave conversation
@@ -38,18 +44,19 @@ export default function ChatPage() {
 // Load message history
   useEffect(() => {
     // Load past messages via REST API
-    fetch(`/api/conversations/${conversationId}/messages?limit=50`)
-      .then(res => res.json())
-      .then(data => setMessages(data.messages))
+    getConversation(conversationId)
+      .then( res => res.data)
+      .then(data => setMessages( (data.messages?data.messages:[]) ))
       .catch(err => console.error('Error loading messages:', err));
   }, [conversationId]);
 
 // Subcribe to new message
   useEffect(() => {
     const unsubscribe = subscribe(WS_EVENTS.NEW_MESSAGE, (data) => {
+      console.log("you've got mail")
       // Only add if it's for this conversation
       if (data.message.conversation_id === conversationId) {
-        setMessages(prev => [...prev, data.message]);
+        setMessages(prev => [...prev, {...data.message, mine: data.message.sender_id === currentUserId}]);
         
         // Auto-scroll to bottom
         setTimeout(() => {
@@ -64,7 +71,7 @@ export default function ChatPage() {
 // Subcribing to typing indicator
 useEffect(() => {
     const unsubscribe = subscribe(WS_EVENTS.USER_TYPING, (data) => {
-      if (data.conversation_id === conversationId) {
+      if (data.conversation_id == conversationId) {
         // Add user to typing list
         setTypingUsers(prev => {
           if (!prev.includes(data.user_id)) {
@@ -88,6 +95,7 @@ useEffect(() => {
   const handleSend = () => {
     if (inputValue.trim() && isConnected) {
       sendMessage(conversationId, inputValue.trim());
+      //sendContextMessage(inputValue.trim(), conversationId, user.id)
       setInputValue('');
       
       // Clear typing timeout
@@ -130,8 +138,8 @@ useEffect(() => {
     <div className="page-container chat-page">
       <div className="chat-header">
         <div>
-          <h2>Barcelona Getaway</h2>
-          <p className="muted">Group chat • June 15 – June 20</p>
+          <h2>{activeTrip.name}</h2>
+          <p className="muted">Group chat • {activeTrip.start_date.split('T')[0]} - {activeTrip.end_date.split('T')[0]}</p>
         </div>
         <div className="avatar-stack">
           <div className="avatar-circle">A</div>
@@ -142,14 +150,14 @@ useEffect(() => {
       </div>
 
       <div className="chat-body">
-        {messages.map((m) => (
+        {messages.map((m, index) => (
           <div
-            key={m.id}
+            key={m.id ?? index} // not a long term fix
             className={`chat-message-row ${m.mine ? "mine" : "theirs"}`}
           >
             {!m.mine && <div className="chat-author">{m.author}</div>}
             <div className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
-              {m.text}
+              {m.content || m.text}
             </div>
           </div>
         ))}

@@ -6,7 +6,7 @@ from database.session import get_session
 
 manager = ConnectionManager()
 
-async def handle_join_conversation(user_id: int, data: dict):
+async def handle_join_conversation(user_id: int, data: dict, manager: ConnectionManager):
     """Handle user joining a conversation"""
     conversation_id = data['conversation_id']
     manager.join_conversation(user_id, conversation_id)
@@ -18,7 +18,7 @@ async def handle_join_conversation(user_id: int, data: dict):
         'conversation_id': conversation_id
     })
 
-async def handle_leave_conversation(user_id: int, data: dict):
+async def handle_leave_conversation(user_id: int, data: dict, manager: ConnectionManager):
     """Handle user leaving a conversation"""
     conversation_id = data['conversation_id']
     manager.leave_conversation(user_id, conversation_id)
@@ -30,7 +30,7 @@ async def handle_leave_conversation(user_id: int, data: dict):
         'conversation_id': conversation_id
     })
 
-async def handle_send_message(user_id: int, data: dict):
+async def handle_send_message(user_id: int, data: dict, manager: ConnectionManager):
     """Handle sending message"""
     conversation_id = data['conversation_id']
     content = data['content']
@@ -44,12 +44,12 @@ async def handle_send_message(user_id: int, data: dict):
             'conversation_id': conversation_id,
             'sender_id': user_id,
             'content': content,
-            'author': f"User {user_id}"
+            'author': data.get('author', f"User {user_id}")  
         }
     })
 
 
-async def handle_typing(user_id: int, data: dict):
+async def handle_typing(user_id: int, data: dict, manager: ConnectionManager) :
     """Handle typing indicator"""
     conversation_id = data['conversation_id']
     
@@ -60,7 +60,7 @@ async def handle_typing(user_id: int, data: dict):
     )
 
 
-async def handle_vote_place(user_id: int, data: dict):
+async def handle_vote_place(user_id: int, data: dict, manager: ConnectionManager):
     """Handle voting on place"""
     place_id = data['place_id']
     plan_id = data['plan_id']
@@ -74,7 +74,7 @@ async def handle_vote_place(user_id: int, data: dict):
         'plan_id': plan_id
     })
 
-async def handle_remove_vote(user_id: int, data: dict):
+async def handle_remove_vote(user_id: int, data: dict, manager: ConnectionManager):
     """Handle removing vote"""
     place_id = data['place_id']
     plan_id = data['plan_id']

@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import wsService from '../services/websocket';
+import { useAuth } from './AuthContext';
 
 const WebSocketContext = createContext(null);
 
@@ -7,41 +8,39 @@ export const WebSocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const {user} = useAuth();
   
-  // Get user ID from your auth context or localStorage
-  const userId = localStorage.getItem('userId') || "1";
+  
+  const userId = user?.id;
   const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
+  
 
   useEffect(() => {
+    if(!userId) return;
     // Connect to WebSocket with user_id in path
     wsService.connect(`${wsUrl}/${userId}`);
 
-    // Set up event listeners
-    wsService.on('connected', () => {
-      console.log('Connected to WebSocket');
-      setIsConnected(true);
-    });
+   const onConnected = () => { console.log('Connected to WebSocket'); setIsConnected(true); };
+    const onDisconnected = () => { console.log('Disconnected from WebSocket'); setIsConnected(false); };
+    const onError = (error) => { console.error('WebSocket error:', error); };
+    const onNewMessage = (data) => {
+      console.log("sender_id:", data.message.sender_id, "userId:", userId, "match:", data.message.sender_id === userId);
+      setMessages(prev => [...prev, {...data.message, mine: data.message.sender_id == userId}]); 
+    };
+    const onOnlineUsers = (data) => { setOnlineUsers(data.users || []); };
 
-    wsService.on('disconnected', () => {
-      console.log('Disconnected from WebSocket');
-      setIsConnected(false);
-    });
+    wsService.on('connected', onConnected);
+    wsService.on('disconnected', onDisconnected);
+    wsService.on('error', onError);
+    wsService.on('new_message', onNewMessage);
+    wsService.on('online_users', onOnlineUsers);
 
-    wsService.on('error', (error) => {
-      console.error('WebSocket error:', error);
-    });
-
-    // Listen for specific events
-    wsService.on('new_message', (data) => {
-      setMessages(prev => [...prev, data.message]);
-    });
-
-    wsService.on('online_users', (data) => {
-      setOnlineUsers(data.users || []);
-    });
-
-    // Cleanup on unmount
     return () => {
+      wsService.off('connected', onConnected);
+      wsService.off('disconnected', onDisconnected);
+      wsService.off('error', onError);
+      wsService.off('new_message', onNewMessage);
+      wsService.off('online_users', onOnlineUsers);
       wsService.disconnect();
     };
   }, [userId, wsUrl]);
@@ -53,7 +52,7 @@ export const WebSocketProvider = ({ children }) => {
       conversation_id: conversationId,
       content: content,
       sender_id: userId,
-      author: `User ${userId}`
+      author: `${user.username}`
     });
   };
 
@@ -90,19 +89,19 @@ export const WebSocketProvider = ({ children }) => {
     });
   };
 
-  const joinConversation = (conversationId) => {
+  const joinConversation = useCallback((conversationId) => {
     wsService.send({
-      type: 'join_conversation',
-      conversation_id: conversationId
+        type: 'join_conversation',
+        conversation_id: conversationId
     });
-  };
+}, []);
 
-  const leaveConversation = (conversationId) => {
+const leaveConversation = useCallback((conversationId) => {
     wsService.send({
-      type: 'leave_conversation',
-      conversation_id: conversationId
+        type: 'leave_conversation',
+        conversation_id: conversationId
     });
-  };
+}, []);
 
   // Generic send function
   const send = (data) => {
@@ -110,12 +109,10 @@ export const WebSocketProvider = ({ children }) => {
   };
 
   // Subscribe to specific event
-  const subscribe = (eventType, callback) => {
+  const subscribe = useCallback((eventType, callback) => {
     wsService.on(eventType, callback);
-    
-    // Return unsubscribe function
     return () => wsService.off(eventType, callback);
-  };
+  }, []);
 
   const value = {
     isConnected,
