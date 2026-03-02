@@ -43,10 +43,11 @@ export default function ChatPage() {
 
 // Load message history
   useEffect(() => {
-    // Load past messages via REST API
     getConversation(conversationId)
       .then( res => res.data)
-      .then(data => setMessages( (data.messages?data.messages:[]) ))
+      .then(data => setMessages(
+        (data ? data : []).map(m => ( {...m, mine: m.sender_user_id === currentUserId} ))
+      ))
       .catch(err => console.error('Error loading messages:', err));
   }, [conversationId]);
 
@@ -56,7 +57,10 @@ export default function ChatPage() {
       console.log("you've got mail")
       // Only add if it's for this conversation
       if (data.message.conversation_id === conversationId) {
-        setMessages(prev => [...prev, {...data.message, mine: data.message.sender_id === currentUserId}]);
+        setMessages(prev => [...prev, {
+          ...data.message, 
+          mine: data.message.sender_id === currentUserId
+        }]);
         
         // Auto-scroll to bottom
         setTimeout(() => {
@@ -95,7 +99,7 @@ useEffect(() => {
   const handleSend = () => {
     if (inputValue.trim() && isConnected) {
       sendMessage(conversationId, inputValue.trim());
-      //sendContextMessage(inputValue.trim(), conversationId, user.id)
+      sendContextMessage(inputValue.trim(), conversationId, user.id)
       setInputValue('');
       
       // Clear typing timeout
