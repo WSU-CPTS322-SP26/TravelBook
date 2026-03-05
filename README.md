@@ -131,7 +131,7 @@ Open the Chat page to access the real-time group conversation linked to your act
 5. Submit a pull request :D
 ## Additional Documentation
 * Sprint reports
-  [Sprint Report 1.txt](https://github.com/user-attachments/files/25673486/Sprint.Report.1.txt) `Video Link Included in Report`
+  [Sprint Report 1.md](https://github.com/user-attachments/files/25673486/Sprint.Report.1.md) `Video Link Included in Report`
 * User links
 ## License
 If you haven't already, add a file called `LICENSE.txt` with the text of the
