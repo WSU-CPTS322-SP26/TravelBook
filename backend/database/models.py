@@ -20,6 +20,7 @@ class UserConversationLink(SQLModel, table=True):
 class User(UserBase, table=True):    
     hashed_password: str = Field()
     conversations: List["Conversation"] = Relationship(back_populates="users", link_model=UserConversationLink)
+    friends: List[int] = Field(sa_column=Column(JSON, default=[]))
 
 
 class UserCreate(UserBase):
