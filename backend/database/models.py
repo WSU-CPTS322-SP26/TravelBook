@@ -95,8 +95,8 @@ class Event(SQLModel, table=True):
 
 
 class Album(SQLModel, table=True):
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    trip_id: Optional[int] = Field(default=1, foreign_key="trip.id")
+    trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
     link: Optional[str] = None
     trip: "Trip" = Relationship(back_populates="albums")
