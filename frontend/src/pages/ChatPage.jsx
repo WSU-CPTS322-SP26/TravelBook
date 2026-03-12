@@ -1,5 +1,6 @@
 // src/pages/ChatPage.jsx
 import React, { useState, useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {useWebSocketContext } from "../context/WebSocketContext"
 import {WS_EVENTS} from "../services/constant";
 import { useAuth } from "../context/AuthContext";
@@ -7,9 +8,12 @@ import { useTrip } from "../context/TripContext";
 import { useMessage } from "../context/MessageContext";
 
 export default function ChatPage() {
-  const {activeTrip} = useTrip();
+      // const {activeTrip} = useTrip();
+  const {conversationId} = useParams();
+  const conversationIdNum = Number(conversationId);
   const {user} = useAuth();
-  const {getConversation, sendMessage: sendContextMessage} = useMessage();
+  const {getConversation, getConversations, sendMessage: sendContextMessage} = useMessage();
+  const [currentConversation, setCurrentConversation] = useState(null);
 
   const { 
     sendMessage, 
@@ -21,102 +25,108 @@ export default function ChatPage() {
   } = useWebSocketContext();
 
   const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputMessage, setInputMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState([]);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const currentUserId = user.id;
-  const conversationId = (activeTrip) ? activeTrip.id : -1; // Get from route params or context
+  const currentUserId = user?.id;
 
 
   // Join / leave conversation
   useEffect(() => {
     // Join conversation when component mounts
-    joinConversation(conversationId);
+    joinConversation(conversationIdNum);
     
     // Leave conversation when component unmounts or conversation changes
     return () => {
-      leaveConversation(conversationId);
+      leaveConversation(conversationIdNum);
     };
-  }, [conversationId, joinConversation, leaveConversation]);
+  }, [conversationIdNum, joinConversation, leaveConversation]);
 
-
-// Load message history
+  // Load message history — wait for auth to resolve before fetching
   useEffect(() => {
-    getConversation(conversationId)
-      .then( res => res.data)
-      .then(data => setMessages(
-        (data ? data : []).map(m => ( {...m, mine: m.sender_user_id === currentUserId} ))
-      ))
+    if (!currentUserId) return;
+    getConversation(conversationIdNum)
+      .then(data => {
+        setCurrentConversation(data);
+        const userMap = {};
+        (data.users || []).forEach(u => { userMap[u.id] = u.username; });
+        const msgs = Array.isArray(data.messages) ? data.messages : [];
+        setMessages(msgs.map(m => ({
+          ...m,
+          mine: m.sender_user_id === currentUserId,
+          author: userMap[m.sender_user_id] ?? `User ${m.sender_user_id}`,
+        })));
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      })
       .catch(err => console.error('Error loading messages:', err));
-  }, [conversationId]);
+  }, [conversationIdNum, currentUserId]);
 
-// Subcribe to new message
+  // Subscribe to new message
   useEffect(() => {
     const unsubscribe = subscribe(WS_EVENTS.NEW_MESSAGE, (data) => {
-      console.log("you've got mail")
-      // Only add if it's for this conversation
-      if (data.message.conversation_id === conversationId) {
-        setMessages(prev => [...prev, {
-          ...data.message, 
-          mine: data.message.sender_id === currentUserId
-        }]);
-        
-        // Auto-scroll to bottom
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      }
-    });
-    
-    return unsubscribe; // Cleanup on unmount
-  }, [conversationId, subscribe]);
-
-// Subcribing to typing indicator
-useEffect(() => {
-    const unsubscribe = subscribe(WS_EVENTS.USER_TYPING, (data) => {
-      if (data.conversation_id == conversationId) {
-        // Add user to typing list
-        setTypingUsers(prev => {
-          if (!prev.includes(data.user_id)) {
-            return [...prev, data.user_id];
-          }
-          return prev;
-        });
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-          setTypingUsers(prev => prev.filter(id => id !== data.user_id));
-        }, 3000);
-      }
+      const msg = data.message;
+      if (Number(msg.conversation_id) !== conversationIdNum) return;
+      const mine = (msg.sender_user_id ?? msg.sender_id) === currentUserId;
+      // Skip echo of our own messages — already added optimistically on send
+      if (mine) return;
+      setMessages(prev => [...prev, { ...msg, mine }]);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
     
     return unsubscribe;
-  }, [conversationId, subscribe]);
+  }, [conversationIdNum, currentUserId, subscribe]);
 
-
-// Send message
-  const handleSend = () => {
-    if (inputValue.trim() && isConnected) {
-      sendMessage(conversationId, inputValue.trim());
-      sendContextMessage(inputValue.trim(), conversationId, user.id)
-      setInputValue('');
+  // Subcribing to typing indicator
+  useEffect(() => {
+      const unsubscribe = subscribe(WS_EVENTS.USER_TYPING, (data) => {
+        if (Number(data.conversation_id) === conversationIdNum) {
+          // Add user to typing list
+          setTypingUsers(prev => {
+            if (!prev.includes(data.user_id)) {
+              return [...prev, data.user_id];
+            }
+            return prev;
+          });
+          
+          // Remove after 3 seconds
+          setTimeout(() => {
+            setTypingUsers(prev => prev.filter(id => id !== data.user_id));
+          }, 3000);
+        }
+      });
       
-      // Clear typing timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    }
+      return unsubscribe;
+    }, [conversationIdNum, subscribe]);
+
+
+  // Send message
+  const handleSend = () => {
+    const text = inputMessage.trim();
+    if (!text || !isConnected) return;
+    // Optimistically add own message immediately
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      conversation_id: conversationIdNum,
+      sender_user_id: currentUserId,
+      content: text,
+      mine: true,
+    }]);
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+    sendMessage(conversationIdNum, text);
+    sendContextMessage(text, conversationIdNum, user.id);
+    setInputMessage('');
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   };
 
 
   // Hnadle input change
     const handleInputChange = (e) => {
-    setInputValue(e.target.value);
+    setInputMessage(e.target.value);
     
     // Send typing indicator
     if (isConnected) {
-      sendTyping(conversationId);
+      sendTyping(conversationIdNum);
     }
     
     // Clear existing timeout
@@ -130,20 +140,29 @@ useEffect(() => {
     }, 3000);
   };
 
-  // Handle key press
-    const handleKeyPress = (e) => {
+  // Handle Enter key to send message
+    const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
+    const getConversationName = () => {
+        if (!currentConversation) return `Conversation ${conversationIdNum}`;
+          if (currentConversation.is_group) {
+              return currentConversation.name ?? `Conversation ${currentConversation.id}`;
+          }
+  
+        const otherUser = (currentConversation.users || []).find((participant) => participant.id !== user.id);
+          return otherUser?.username ?? `Conversation ${currentConversation.id}`;
+      };
+
   return (
     <div className="page-container chat-page">
       <div className="chat-header">
         <div>
-          <h2>{activeTrip.name}</h2>
-          <p className="muted">Group chat • {activeTrip.start_date.split('T')[0]} - {activeTrip.end_date.split('T')[0]}</p>
+          {getConversationName()}
         </div>
         <div className="avatar-stack">
           <div className="avatar-circle">A</div>
@@ -165,25 +184,19 @@ useEffect(() => {
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="message-input-container">
         <input
           type="text"
-          value={inputValue}
+          value={inputMessage}
           onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          className="message-input"
+          className="text-input"
           disabled={!isConnected}
         />
-        <button 
-          onClick={handleSend} 
-          className="send-button"
-          disabled={!isConnected || !inputValue.trim()}
-        >
-          Send
-        </button>
       </div>
     </div>
   );

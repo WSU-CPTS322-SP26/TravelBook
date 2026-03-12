@@ -20,7 +20,7 @@ export const WebSocketProvider = ({ children }) => {
     // Connect to WebSocket with user_id in path
     wsService.connect(`${wsUrl}/${userId}`);
 
-   const onConnected = () => { console.log('Connected to WebSocket'); setIsConnected(true); };
+    const onConnected = () => { console.log('Connected to WebSocket'); setIsConnected(true); };
     const onDisconnected = () => { console.log('Disconnected from WebSocket'); setIsConnected(false); };
     const onError = (error) => { console.error('WebSocket error:', error); };
     const onNewMessage = (data) => {
