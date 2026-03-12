@@ -6,6 +6,7 @@ export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const {currentUser, token, setToken} = useAuth();
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
