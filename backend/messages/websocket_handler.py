@@ -1,7 +1,9 @@
 from .messages_db import *
 from messages.connection_manager import ConnectionManager
 from database.models import Message, Conversation, User
-from database.session import get_session
+from database.session import get_session, engine
+from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 
 
 manager = ConnectionManager()
@@ -32,21 +34,34 @@ async def handle_leave_conversation(user_id: int, data: dict, manager: Connectio
 
 async def handle_send_message(user_id: int, data: dict, manager: ConnectionManager):
     """Handle sending message"""
-    conversation_id = data['conversation_id']
+    conversation_id = int(data['conversation_id'])
     content = data['content']
-    
-    # For now, just broadcast the message without database operations
-    # Broadcast message to all participants in the conversation
-    await manager.send_to_conversation(conversation_id, {
+
+    # Look up conversation participants from DB so all connected users receive the message,
+    # even if they haven't opened the ChatPage (i.e. not in a conversation room).
+    with Session(engine) as db:
+        conversation = db.exec(
+            select(Conversation)
+            .where(Conversation.id == conversation_id)
+            .options(selectinload(Conversation.users))
+        ).first()
+
+    participant_ids = [u.id for u in conversation.users] if conversation else []
+
+    message_payload = {
         'type': 'new_message',
         'message': {
             'id': int(conversation_id * 1000 + user_id),  # Temporary ID
             'conversation_id': conversation_id,
             'sender_id': user_id,
+            'sender_user_id': user_id,
             'content': content,
-            'author': data.get('author', f"User {user_id}")  
+            'author': data.get('author', f"User {user_id}")
         }
-    })
+    }
+
+    for pid in participant_ids:
+        await manager.send_to_user(pid, message_payload)
 
 
 async def handle_typing(user_id: int, data: dict, manager: ConnectionManager) :

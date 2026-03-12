@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-from database.models import Message, Conversation, User
+from sqlalchemy.orm import selectinload
+from database.models import Message, Conversation, User, ConversationRead, MessageRead
 from database.session import get_session
 from auth.auth_handler import get_current_user
 from typing import List
@@ -30,7 +31,7 @@ def send_message(message: Message,
     return save_message(db_message, conversation, db)
     
 
-@router.post("/conversation")
+@router.post("/conversations")
 def create_conversation(conversation: Conversation,
                         db: Session = Depends(get_session), 
                         current_user: User = Depends(get_current_user)):
@@ -38,13 +39,34 @@ def create_conversation(conversation: Conversation,
 
     return create_conversation_handler(db_conversation, db)
 
-@router.get("/conversation/{conversation_id}", response_model=List[Message])
+@router.get("/conversations", response_model=List[ConversationRead])
+def get_conversations(db: Session = Depends(get_session),
+                      current_user: User = Depends(get_current_user)):
+      conversations = db.exec(
+          select(Conversation)
+          .where(Conversation.users.any(id=current_user.id))
+          .options(
+            selectinload(Conversation.users),
+            selectinload(Conversation.messages),
+            selectinload(Conversation.trip)
+          )).all()
+      print(conversations)
+      return conversations
+
+@router.get("/conversations/{conversation_id}", response_model=ConversationRead)
 def get_conversation_handler(conversation_id: int,
                      db: Session = Depends(get_session), 
                      current_user: User = Depends(get_current_user)):
-    conversation = db.exec(select(Conversation).where(Conversation.id == conversation_id)).first()
+    conversation = db.exec(
+        select(Conversation)
+        .where(Conversation.id == conversation_id)
+        .options(
+            selectinload(Conversation.users),
+            selectinload(Conversation.messages),
+            selectinload(Conversation.trip)
+        )).first()
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
     if current_user.id not in [user.id for user in conversation.users]:
         raise HTTPException(status_code=403, detail="Not authorized to view this conversation")
-    return conversation.messages
+    return conversation

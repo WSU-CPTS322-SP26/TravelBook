@@ -3,7 +3,7 @@ import {AuthContext} from './AuthContext'
 import api from "../api";
 
 
-function AuthProvider ({ children }) {
+export function AuthProvider ({ children }) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem("token")); 
 
@@ -15,7 +15,7 @@ function AuthProvider ({ children }) {
             setToken(null);
             localStorage.removeItem("token");
         });
-    }, []);
+    }, [token]);
 
     const generateAccessToken = async(username, password) => {
         const params = new URLSearchParams();
@@ -29,13 +29,14 @@ function AuthProvider ({ children }) {
     }
 
     const login = async (username, password) => {
-        setUser(username);
         try{
             await generateAccessToken(username, password);
-            setUser((await api.get("/auth/me")).data);
+            const response = await api.get("/auth/me");
+            console.log(response.data);
+            setUser(response.data);
         } catch(err){
-            console.log(err, "Attempting registration...");
-            register(username, password); // TODO: it should not be done here...
+            console.log(err, "Error loging in");
+            // register(username, password); // TODO: it should not be done here...
         }
     };
 

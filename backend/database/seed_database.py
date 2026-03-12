@@ -1,0 +1,297 @@
+from sqlmodel import Session
+from database.models import User, Conversation, Message, Trip, Event, Album, UserConversationLink
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+
+# Password hashing
+pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def seed_database(engine):
+    """Populate database with test data"""
+
+    with Session(engine) as session:
+
+        # ════════════════════════════════════════════════════════
+        # CREATE USERS
+        # ════════════════════════════════════════════════════════
+        print("Creating users...")
+
+        users_data = [
+            {"username": "alice",   "email": "alice@example.com",   "password": "password123"},
+            {"username": "bob",     "email": "bob@example.com",     "password": "password123"},
+            {"username": "charlie", "email": "charlie@example.com", "password": "password123"},
+            {"username": "diana",   "email": "diana@example.com",   "password": "password123"},
+            {"username": "eve",     "email": "eve@example.com",     "password": "password123"},
+        ]
+
+        users = []
+        for user_data in users_data:
+            user = User(
+                username=user_data["username"],
+                email=user_data["email"],
+                hashed_password=hash_password(user_data["password"]),
+                friends=[]
+            )
+            session.add(user)
+            users.append(user)
+
+        session.commit()
+        for user in users:
+            session.refresh(user)
+
+        print(f"✓ Created {len(users)} users")
+
+        # ════════════════════════════════════════════════════════
+        # CREATE CONVERSATIONS
+        # ════════════════════════════════════════════════════════
+        print("Creating conversations...")
+
+        # Conversation 1: Alice & Bob (private chat)
+        conv1 = Conversation()
+        session.add(conv1)
+        session.commit()
+        session.refresh(conv1)
+
+        session.add_all([
+            UserConversationLink(user_id=users[0].id, conversation_id=conv1.id),
+            UserConversationLink(user_id=users[1].id, conversation_id=conv1.id),
+        ])
+
+        # Conversation 2: Alice, Charlie, Diana (group chat)
+        conv2 = Conversation()
+        conv2.is_group = True
+        session.add(conv2)
+        session.commit()
+        session.refresh(conv2)
+
+        session.add_all([
+            UserConversationLink(user_id=users[0].id, conversation_id=conv2.id),
+            UserConversationLink(user_id=users[2].id, conversation_id=conv2.id),
+            UserConversationLink(user_id=users[3].id, conversation_id=conv2.id),
+        ])
+
+        # Conversation 3: All users (big group)
+        conv3 = Conversation()
+        conv3.is_group = True
+        session.add(conv3)
+        session.commit()
+        session.refresh(conv3)
+
+        session.add_all([
+            UserConversationLink(user_id=user.id, conversation_id=conv3.id)
+            for user in users
+        ])
+
+        session.commit()
+        conversations = [conv1, conv2, conv3]
+        print(f"✓ Created {len(conversations)} conversations")
+
+        # ════════════════════════════════════════════════════════
+        # CREATE MESSAGES
+        # ════════════════════════════════════════════════════════
+        print("Creating messages...")
+
+        # Conv 1 — private (Alice ↔ Bob): receiver_user_id set
+        messages_conv1 = [
+            {"sender": users[0], "receiver": users[1], "content": "Hey Bob! Want to plan a trip to Japan?",    "minutes_ago": 120},
+            {"sender": users[1], "receiver": users[0], "content": "Yes! I've always wanted to go to Tokyo!",   "minutes_ago": 118},
+            {"sender": users[0], "receiver": users[1], "content": "Great! Let me create a trip plan",          "minutes_ago": 115},
+            {"sender": users[1], "receiver": users[0], "content": "Should we invite others?",                  "minutes_ago": 110},
+            {"sender": users[0], "receiver": users[1], "content": "Good idea! I'll add Charlie and Diana",     "minutes_ago": 105},
+        ]
+
+        for msg_data in messages_conv1:
+            session.add(Message(
+                content=msg_data["content"],
+                sender_user_id=msg_data["sender"].id,
+                receiver_user_id=msg_data["receiver"].id,  # private — set receiver
+                conversation_id=conv1.id,
+                timestamp=datetime.now() - timedelta(minutes=msg_data["minutes_ago"])
+            ))
+
+        # Conv 2 — group (Alice, Charlie, Diana): receiver_user_id = None
+        messages_conv2 = [
+            {"sender": users[0], "content": "Hey everyone! Planning a Tokyo trip!",          "minutes_ago": 100},
+            {"sender": users[2], "content": "Count me in! 🎌",                               "minutes_ago": 95},
+            {"sender": users[3], "content": "I'm so excited! When are we thinking?",         "minutes_ago": 90},
+            {"sender": users[0], "content": "How about late spring? Cherry blossoms!",       "minutes_ago": 85},
+            {"sender": users[2], "content": "Perfect! I'll start looking at flights",        "minutes_ago": 80},
+            {"sender": users[3], "content": "I found an amazing ramen place we HAVE to try", "minutes_ago": 75},
+            {"sender": users[0], "content": "Add it to the trip! I'll vote yes 👍",          "minutes_ago": 70},
+        ]
+
+        for msg_data in messages_conv2:
+            session.add(Message(
+                content=msg_data["content"],
+                sender_user_id=msg_data["sender"].id,
+                receiver_user_id=None,  # group — no single receiver
+                conversation_id=conv2.id,
+                timestamp=datetime.now() - timedelta(minutes=msg_data["minutes_ago"])
+            ))
+
+        session.commit()
+        print(f"✓ Created {len(messages_conv1) + len(messages_conv2)} messages")
+
+        # ════════════════════════════════════════════════════════
+        # CREATE TRIPS
+        # ════════════════════════════════════════════════════════
+        print("Creating trips...")
+
+        trips_data = [
+            {
+                "name": "Tokyo Adventure 2024",
+                "description": "Exploring Tokyo's food, culture, and technology!",
+                "user_id": users[0].id,
+                "conversation_id": conv2.id,
+                "start_date": datetime(2024, 4, 15),
+                "end_date": datetime(2024, 4, 22)
+            },
+            {
+                "name": "Paris Weekend",
+                "description": "Quick getaway to the City of Light",
+                "user_id": users[1].id,
+                "conversation_id": conv1.id,
+                "start_date": datetime(2024, 6, 1),
+                "end_date": datetime(2024, 6, 3)
+            },
+            {
+                "name": "Iceland Road Trip",
+                "description": "Chasing waterfalls and northern lights",
+                "user_id": users[0].id,
+                "conversation_id": conv3.id,
+                "start_date": datetime(2024, 9, 10),
+                "end_date": datetime(2024, 9, 17)
+            }
+        ]
+
+        trips = []
+        for trip_data in trips_data:
+            trip = Trip(**trip_data)
+            session.add(trip)
+            trips.append(trip)
+
+        session.commit()
+        for trip in trips:
+            session.refresh(trip)
+
+        print(f"✓ Created {len(trips)} trips")
+
+        # ════════════════════════════════════════════════════════
+        # CREATE EVENTS (Places to visit)
+        # ════════════════════════════════════════════════════════
+        print("Creating events...")
+
+        tokyo_events = [
+            {
+                "name": "Senso-ji Temple",
+                "description": "Ancient Buddhist temple in Asakusa",
+                "trip_id": trips[0].id, "user_id": users[0].id,
+                "date": datetime(2024, 4, 16, 9, 0),
+                "location": {"place_id": "ChIJ8T1GpMGOGGARDYGSgpooDWw", "name": "Senso-ji Temple",
+                              "latitude": 35.7148, "longitude": 139.7967,
+                              "address": "2-3-1 Asakusa, Taito City, Tokyo 111-0032, Japan"}
+            },
+            {
+                "name": "Tsukiji Outer Market",
+                "description": "Fresh sushi breakfast!",
+                "trip_id": trips[0].id, "user_id": users[2].id,
+                "date": datetime(2024, 4, 16, 6, 30),
+                "location": {"place_id": "ChIJISz8NjyLGGAR5JBaOCZa4RQ", "name": "Tsukiji Outer Market",
+                              "latitude": 35.6654, "longitude": 139.7707,
+                              "address": "4 Chome Tsukiji, Chuo City, Tokyo 104-0045, Japan"}
+            },
+            {
+                "name": "Tokyo Tower",
+                "description": "Iconic landmark with amazing views",
+                "trip_id": trips[0].id, "user_id": users[3].id,
+                "date": datetime(2024, 4, 17, 14, 0),
+                "location": {"place_id": "ChIJCewJkL2LGGARHS_m2NRpJKY", "name": "Tokyo Tower",
+                              "latitude": 35.6586, "longitude": 139.7454,
+                              "address": "4-2-8 Shibakoen, Minato City, Tokyo 105-0011, Japan"}
+            },
+            {
+                "name": "Shibuya Crossing",
+                "description": "World's busiest pedestrian crossing",
+                "trip_id": trips[0].id, "user_id": users[0].id,
+                "date": datetime(2024, 4, 18, 19, 0),
+                "location": {"place_id": "ChIJp6kFt9eMGGARJ1vvvHHiPIg", "name": "Shibuya Crossing",
+                              "latitude": 35.6595, "longitude": 139.7004,
+                              "address": "2-2-1 Dogenzaka, Shibuya City, Tokyo 150-0043, Japan"}
+            },
+            {
+                "name": "TeamLab Borderless",
+                "description": "Digital art museum - mind blowing!",
+                "trip_id": trips[0].id, "user_id": users[2].id,
+                "date": datetime(2024, 4, 19, 11, 0),
+                "location": {"place_id": "ChIJQSaJPauOGGARgPvT-4gEbYU", "name": "teamLab Borderless",
+                              "latitude": 35.6246, "longitude": 139.7755,
+                              "address": "1-3-8 Aomi, Koto City, Tokyo 135-0064, Japan"}
+            },
+        ]
+
+        paris_events = [
+            {
+                "name": "Eiffel Tower",
+                "description": "Classic Paris experience",
+                "trip_id": trips[1].id, "user_id": users[1].id,
+                "date": datetime(2024, 6, 1, 10, 0),
+                "location": {"place_id": "ChIJLU7jZClu5kcR4PcOOO6p3I0", "name": "Eiffel Tower",
+                              "latitude": 48.8584, "longitude": 2.2945,
+                              "address": "Champ de Mars, 5 Avenue Anatole France, 75007 Paris, France"}
+            },
+            {
+                "name": "Louvre Museum",
+                "description": "See the Mona Lisa!",
+                "trip_id": trips[1].id, "user_id": users[1].id,
+                "date": datetime(2024, 6, 2, 9, 0),
+                "location": {"place_id": "ChIJD3uTd9hx5kcR1IQvGfr8dbk", "name": "Louvre Museum",
+                              "latitude": 48.8606, "longitude": 2.3376,
+                              "address": "Rue de Rivoli, 75001 Paris, France"}
+            },
+        ]
+
+        all_events = tokyo_events + paris_events
+        for event_data in all_events:
+            session.add(Event(**event_data))
+
+        session.commit()
+        print(f"✓ Created {len(all_events)} events")
+
+        # ════════════════════════════════════════════════════════
+        # CREATE ALBUMS
+        # ════════════════════════════════════════════════════════
+        print("Creating albums...")
+
+        albums_data = [
+            {"name": "Tokyo Food Adventures", "trip_id": trips[0].id, "link": "https://photos.example.com/tokyo-food"},
+            {"name": "Tokyo Temples",         "trip_id": trips[0].id, "link": "https://photos.example.com/tokyo-temples"},
+            {"name": "Paris Memories",        "trip_id": trips[1].id, "link": "https://photos.example.com/paris"},
+        ]
+
+        for album_data in albums_data:
+            session.add(Album(**album_data))
+
+        session.commit()
+        print(f"✓ Created {len(albums_data)} albums")
+
+        # ════════════════════════════════════════════════════════
+        # SUMMARY
+        # ════════════════════════════════════════════════════════
+        print("\n" + "=" * 50)
+        print("DATABASE SEEDED SUCCESSFULLY!")
+        print("=" * 50)
+        print(f"Users:         {len(users)}")
+        print(f"Conversations: {len(conversations)}")
+        print(f"Messages:      {len(messages_conv1) + len(messages_conv2)}")
+        print(f"Trips:         {len(trips)}")
+        print(f"Events:        {len(all_events)}")
+        print(f"Albums:        {len(albums_data)}")
+        print("=" * 50)
+        print("\nTest Credentials:")
+        print("-" * 50)
+        for user_data in users_data:
+            print(f"  {user_data['username']:<10} | {user_data['email']:<25} | {user_data['password']}")
+        print("=" * 50)

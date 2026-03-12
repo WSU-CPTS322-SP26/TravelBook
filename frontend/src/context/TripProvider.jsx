@@ -14,7 +14,7 @@ import api from "../api";
       albums: List["Album"] = Relationship(back_populates="trip")
 */
 
-function TripProvider({children}){
+export function TripProvider({children}){
   let [activeTrip, setActiveTrip] = useState(null);
 
   const createTrip = async (name, conversationId, description) => {

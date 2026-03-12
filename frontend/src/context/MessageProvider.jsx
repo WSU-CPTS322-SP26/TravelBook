@@ -2,7 +2,7 @@ import { MessageContext } from "./MessageContext";
 import { useState } from "react";
 import api from "../api";
 
-function MessageProvider({children}){
+export function MessageProvider({children}){
     const [activeConversation, setActiveConversation] = useState(null); // TODO: initialize proper
     
 
@@ -12,16 +12,21 @@ function MessageProvider({children}){
     }
 
     const createConversation = async() => {
-        let conversation = await api.post("/messages/conversation", {}).then( (res)=>{ return res.data;} );
+        let conversation = await api.post("/messages/conversations", {}).then( (res)=>{ return res.data;} );
         return conversation.id;
+    }
+
+    const getConversations = async() => {
+        let res = await api.get("/messages/conversations");
+        return res.data;
     }
         
     const getConversation = async(conversationId) => {
-        console.log(`passing ${conversationId}`);
-        return await api.get(`/messages/conversation/${conversationId}`)
+        let res = await api.get(`/messages/conversations/${conversationId}`);
+        return res.data;
     }
     return (
-        <MessageContext.Provider value={{activeConversation, setActiveConversation, createConversation, sendMessage, getConversation}}>
+        <MessageContext.Provider value={{activeConversation, setActiveConversation, createConversation, sendMessage, getConversation, getConversations}}>
           {children}
         </MessageContext.Provider>
     );

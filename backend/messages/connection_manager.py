@@ -34,8 +34,13 @@ class ConnectionManager:
             if not self.user_connections[user_id]:
                 del self.user_connections[user_id]
 
+                # Remove the user from each room they were in (don't delete the whole room)
                 for conv_id in list(self.user_active_rooms.get(user_id, [])):
-                        del self.conversation_rooms[conv_id]
+                    if conv_id in self.conversation_rooms:
+                        self.conversation_rooms[conv_id].discard(user_id)
+                        if not self.conversation_rooms[conv_id]:
+                            del self.conversation_rooms[conv_id]
+                self.user_active_rooms.pop(user_id, None)
 
         print(f"User {user_id} disconnected. Remaining connections: {len(self.user_connections.get(user_id, []))}")
 
