@@ -9,7 +9,7 @@
 
   export default function TripListPage() {
     const [trips, setTrips] = useState([]);
-    const [eventCounts, setEventCounts] = useState({});
+    const [tripEvents, setTripEvents] = useState({});
     
     const [openTripIndex, setOpenTripIndex] = useState(null);
     const navigate = useNavigate();
@@ -34,14 +34,13 @@
         const data = await getTrips().then( (data) => {return data.map(trip => ({ ...trip, locations: [] })); } );
         setTrips(data);
 
-        const counts = {};
+        const events = {};
         await Promise.all(
           data.map(async (trip) => {
-            const events = await getEventsByTrip(trip.id);
-            counts[trip.id] = events.length;
+            events[trip.id] = await getEventsByTrip(trip.id);
           })
         )
-        setEventCounts(counts);
+        setTripEvents(events);
       };
       _fetchTrips();
     }, [token]);
@@ -91,7 +90,7 @@
                 <div>
                   <strong>{trip.name}</strong>
                   <br />
-                  <span>{ eventCounts[trip.id] ?? 0 } saved locations</span>
+                  <span>{ (tripEvents[trip.id] ?? []).length } saved locations</span>
                   {trip.startDate && trip.endDate && (
                     <div style={{ fontSize: "0.9em", opacity: 0.8 }}>
                       {trip.startDate} → {trip.endDate}
@@ -140,9 +139,9 @@
                 <div style={{ marginTop: "12px" }}>
                   <h4>Locations</h4>
                   <ul>
-                    {trip.locations.map((loc, i) => (
+                    {tripEvents[trip.id].map((event, i) => (
                       <li key={i}>
-                        {loc.name} — ({loc.lat.toFixed(4)}, {loc.lng.toFixed(4)})
+                        {event.name} — ({event.location.latitude.toFixed(4)}, {event.location.longitude.toFixed(4)})
                       </li>
                     ))}
                   </ul>
