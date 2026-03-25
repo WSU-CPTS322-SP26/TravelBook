@@ -1,9 +1,84 @@
-from sqlmodel import Session
-from database.models import User, Conversation, Message, Trip, Event, Album, UserConversationLink
-from datetime import datetime, timedelta
+from sqlmodel import SQLModel, Field, Relationship, Column, TIMESTAMP, JSON
+from typing import Optional, List
+from datetime import datetime
+import os
+
+
+# ─── Inline fixed models (matching corrected models.py) ───────────────────────
+
+class UserBase(SQLModel):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str
+    email: str
+
+
+class UserConversationLink(SQLModel, table=True):
+    user_id: Optional[int] = Field(default=None, foreign_key="users.id", primary_key=True)
+    conversation_id: Optional[int] = Field(default=None, foreign_key="conversation.id", primary_key=True)
+
+
+class User(UserBase, table=True):
+    __tablename__ = "users"
+    hashed_password: str = Field()
+    conversations: List["Conversation"] = Relationship(back_populates="users", link_model=UserConversationLink)
+    friends: List[int] = Field(sa_column=Column(JSON, default=[]))
+
+
+class Conversation(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    users: List["User"] = Relationship(back_populates="conversations", link_model=UserConversationLink)
+    messages: List["Message"] = Relationship(back_populates="conversation")
+    trip: Optional["Trip"] = Relationship(back_populates="conversation")
+
+
+class Message(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    content: str
+    sender_user_id: int = Field(foreign_key="users.id")
+    receiver_user_id: Optional[int] = Field(default=None, foreign_key="users.id")  # None for group messages
+    conversation_id: Optional[int] = Field(default=None, foreign_key="conversation.id")
+    timestamp: Optional[datetime] = Field(sa_column=Column(TIMESTAMP(timezone=True), default=datetime.now()))
+    conversation: Optional["Conversation"] = Relationship(back_populates="messages")
+
+
+class Trip(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    description: Optional[str] = None
+    user_id: int = Field(foreign_key="users.id")
+    conversation_id: Optional[int] = Field(default=None, foreign_key="conversation.id")
+    conversation: Optional["Conversation"] = Relationship(back_populates="trip")
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    events: List["Event"] = Relationship(back_populates="trip")
+    albums: List["Album"] = Relationship(back_populates="trip")
+
+
+class Event(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id")
+    name: str
+    description: Optional[str] = None
+    trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
+    date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
+    location: dict = Field(sa_column=Column(JSON, nullable=False))
+    trip: "Trip" = Relationship(back_populates="events")
+
+
+class Album(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
+    link: Optional[str] = None
+    trip: "Trip" = Relationship(back_populates="albums")
+
+
+# ─── Seed logic ───────────────────────────────────────────────────────────────
+
+from sqlmodel import Session, create_engine
+from datetime import timedelta
 from passlib.context import CryptContext
 
-# Password hashing
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
@@ -62,7 +137,6 @@ def seed_database(engine):
 
         # Conversation 2: Alice, Charlie, Diana (group chat)
         conv2 = Conversation()
-        conv2.is_group = True
         session.add(conv2)
         session.commit()
         session.refresh(conv2)
@@ -75,7 +149,6 @@ def seed_database(engine):
 
         # Conversation 3: All users (big group)
         conv3 = Conversation()
-        conv3.is_group = True
         session.add(conv3)
         session.commit()
         session.refresh(conv3)
@@ -131,6 +204,21 @@ def seed_database(engine):
                 conversation_id=conv2.id,
                 timestamp=datetime.now() - timedelta(minutes=msg_data["minutes_ago"])
             ))
+
+        # Poll message — no votes yet
+        session.add(Message(
+            content="Which day should we visit Senso-ji Temple?",
+            message_type="poll",
+            metadata={
+                "options": ["April 16 (Morning)", "April 17 (Afternoon)", "April 18 (Evening)"],
+                "votes": {},
+                "expires_at": "2026-04-10T00:00:00"
+            },
+            sender_user_id=users[0].id,
+            receiver_user_id=None,
+            conversation_id=conv2.id,
+            timestamp=datetime.now() - timedelta(minutes=65)
+        ))
 
         session.commit()
         print(f"✓ Created {len(messages_conv1) + len(messages_conv2)} messages")
