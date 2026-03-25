@@ -387,6 +387,12 @@ body {
   border-bottom-right-radius: 0.2rem;
 }
 
+.chat-bubble-poll {
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-bottom: 0.2rem;
+}
+
 .chat-bubble.theirs {
   background: #020617;
   border: 1px solid rgba(148, 163, 184, 0.5);

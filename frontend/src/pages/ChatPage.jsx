@@ -1,11 +1,13 @@
 // src/pages/ChatPage.jsx
 import React, { useState, useRef, useEffect } from "react";
+import {PollBox } from "../components/PollBox";
 import { useParams } from "react-router-dom";
 import {useWebSocketContext } from "../context/WebSocketContext"
 import {WS_EVENTS} from "../services/constant";
 import { useAuth } from "../context/AuthContext";
 import { useTrip } from "../context/TripContext";
 import { useMessage } from "../context/MessageContext";
+import { MessageType } from "../types/types"
 
 export default function ChatPage() {
       // const {activeTrip} = useTrip();
@@ -30,6 +32,30 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const currentUserId = user?.id;
+
+  const MessageBoxType = (message) => {
+    switch (message.type){
+      case MessageType.TEXT:
+        return <div className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
+              {m.content || m.text}
+            </div>;
+
+      case MessageType.POLL:
+        return <PollBox message={message} onVote={handleVote}/>
+
+      case MessageType.IMAGE:
+        console.log("Invalid media");
+        return;
+
+      case MessageType.VIDEO:
+        console.log("Invalid media");
+        return;
+
+      default:
+        console.log("Invalid media");
+        return;
+    }
+  };
 
 
   // Join / leave conversation
@@ -62,6 +88,7 @@ export default function ChatPage() {
       .catch(err => console.error('Error loading messages:', err));
   }, [conversationIdNum, currentUserId]);
 
+
   // Subscribe to new message
   useEffect(() => {
     const unsubscribe = subscribe(WS_EVENTS.NEW_MESSAGE, (data) => {
@@ -76,6 +103,7 @@ export default function ChatPage() {
     
     return unsubscribe;
   }, [conversationIdNum, currentUserId, subscribe]);
+
 
   // Subcribing to typing indicator
   useEffect(() => {
@@ -158,6 +186,15 @@ export default function ChatPage() {
           return otherUser?.username ?? `Conversation ${currentConversation.id}`;
       };
 
+    const handleVote = (option) => {
+      // Send vote to backend
+      sendMessage(conversationIdNum, '', MessageType.POLL, {
+        question: currentConversation.poll_question,
+        options: currentConversation.poll_options,
+        selected_option: option
+      });
+    }
+
   return (
     <div className="page-container chat-page">
       <div className="chat-header">
@@ -179,9 +216,7 @@ export default function ChatPage() {
             className={`chat-message-row ${m.mine ? "mine" : "theirs"}`}
           >
             {!m.mine && <div className="chat-author">{m.author}</div>}
-            <div className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
-              {m.content || m.text}
-            </div>
+            {MessageBoxType(m)}
           </div>
         ))}
         <div ref={messagesEndRef} />
@@ -201,3 +236,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
