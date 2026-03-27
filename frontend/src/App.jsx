@@ -24,7 +24,6 @@ function App() {
   const {user, login, logout} = useAuth();
 
   return (
-    <AuthProvider>
     <WebSocketProvider>
     <MessageProvider>
     <FriendProvider>
@@ -75,7 +74,6 @@ function App() {
     </FriendProvider>
     </MessageProvider>
     </WebSocketProvider>
-    </AuthProvider>
   );
 }
 

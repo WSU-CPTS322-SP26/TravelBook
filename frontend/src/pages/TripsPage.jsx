@@ -14,7 +14,7 @@
     const [openTripIndex, setOpenTripIndex] = useState(null);
     const navigate = useNavigate();
     const {getTrips, setActiveTrip, deleteTrip} = useTrip();
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { getEventsByTrip } = useEvent();
     
   /*
@@ -24,13 +24,11 @@
           createdAt: new Date().toISOString(),
         };
       */
-    
 
-    // makeover heavily influenced by AI
     useEffect(() => {
       // TODO: Add location getting once events are implemented
       const _fetchTrips = async () => {
-        if(!token) { return; }
+        if(!user) { return; }
         const data = await getTrips().then( (data) => {return data.map(trip => ({ ...trip, locations: [] })); } );
         setTrips(data);
 
@@ -43,7 +41,7 @@
         setTripEvents(events);
       };
       _fetchTrips();
-    }, [token]);
+    }, [user]);
 
 
     // Delete a trip
