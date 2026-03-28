@@ -32,7 +32,6 @@ export function AuthProvider ({ children }) {
         try{
             await generateAccessToken(username, password);
             const response = await api.get("/auth/me");
-            console.log(response.data);
             setUser(response.data);
         } catch(err){
             console.log(err, "Error loging in");
