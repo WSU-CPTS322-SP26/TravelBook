@@ -59,3 +59,20 @@ test('register sets user', async () => {
         expect(result.current.user).toMatchObject(testUser);
     })
 });
+
+test('logout sets user=null', async () => {
+    let userOnLogin, userOnLogout;
+    mock.onPost('/auth/token').reply(200, {access_token: "12345678"});
+    mock.onGet('/auth/me').reply(200, testUser);
+
+    const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+    });
+    await result.current.login("alice","password").then( () => { userOnLogin = result.current.user });
+    result.current.logout();
+    userOnLogout = result.current.user
+    await waitFor( () => {
+        expect(userOnLogin == testUser && userOnLogout == null);
+    })
+
+});
