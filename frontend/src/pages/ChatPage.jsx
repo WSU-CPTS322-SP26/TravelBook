@@ -1,6 +1,7 @@
 // src/pages/ChatPage.jsx
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import PollBox from "../components/PollBox";
+import PollCreation from "../components/PollCreation";
 import { useParams } from "react-router-dom";
 import {useWebSocketContext } from "../context/WebSocketContext"
 import {WS_EVENTS} from "../services/constant";
@@ -26,6 +27,8 @@ export default function ChatPage() {
     subscribe,
     joinConversation,
     leaveConversation,
+    updateVote,
+    addPoll,
     isConnected
   } = useWebSocketContext();
 
@@ -33,6 +36,7 @@ export default function ChatPage() {
   const [inputMessage, setInputMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState([]);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
+  const [showPollCreation, setShowPollCreation] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const currentUserId = user?.id;
@@ -47,7 +51,7 @@ export default function ChatPage() {
 
       case MessageType.POLL:
         console.log("Rendering poll message", message);
-        return <PollBox poll={message} onVote={handleVote}/>
+        return <PollBox poll={message} onVote={(option) => handleVote(message, option)} />
             
       case MessageType.IMAGE:
         console.log("Invalid media");
@@ -96,17 +100,31 @@ export default function ChatPage() {
   }, [conversationIdNum, currentUserId]);
 
 
-  // Subscribe to new message
+  // Subscribe to new messages and polls
   useEffect(() => {
-    const unsubscribe = subscribe(WS_EVENTS.NEW_MESSAGE, (data) => {
+    const handleNewMessage = (data) => {
       const msg = data.message;
       console.log("Received new message", msg);
       if (Number(msg.conversation_id) !== conversationIdNum) return;
       setMessages(prev => [...prev, { ...msg }]);
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-    });
+    };
+
+    const handleNewPoll = (data) => {
+      const msg = data.message;
+      console.log("Received new poll", msg);
+      if (Number(msg.conversation_id) !== conversationIdNum) return;
+      setMessages(prev => [...prev, { ...msg }]);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    };
+
+    const unsubscribeMessage = subscribe(WS_EVENTS.NEW_MESSAGE, handleNewMessage);
+    const unsubscribePoll = subscribe(WS_EVENTS.ADD_POLL, handleNewPoll);
     
-    return unsubscribe;
+    return () => {
+      unsubscribeMessage();
+      unsubscribePoll();
+    };
   }, [conversationIdNum, currentUserId, subscribe]);
 
 
@@ -147,9 +165,27 @@ export default function ChatPage() {
 
   // Handle media options
   const handleAddMedia = (mediaType) => {
-    console.log(`Adding ${mediaType} media`);
-    // TODO: Implement media upload functionality
-    setShowMediaOptions(false);
+    if (mediaType === 'poll') {
+      setShowPollCreation(true);
+      setShowMediaOptions(false);
+    } else {
+      console.log(`Adding ${mediaType} media`);
+      // TODO: Implement media upload functionality
+      setShowMediaOptions(false);
+    }
+  };
+
+  // Handle poll creation
+  const handlePollCreate = (poll) => {
+    // Extract options from the poll meta_data
+    const pollContent = poll.content;
+    const pollMetaData = poll.meta_data;
+    
+    // Send poll to backend
+    addPoll(conversationIdNum, pollContent, pollMetaData);
+    
+    // Close the poll creation modal
+    setShowPollCreation(false);
   };
 
 
@@ -191,13 +227,34 @@ export default function ChatPage() {
         return otherUser?.username ?? `Conversation ${currentConversation.id}`;
     };
 
-  const handleVote = (option) => {
-    // Send vote to backend
-    sendMessage(conversationIdNum, '', MessageType.POLL, {
-      question: currentConversation.poll_question,
-      options: currentConversation.poll_options,
-      selected_option: option
+  const handleVote = (pollMessage, selectedOption) => {
+    // Build updated meta_data with the vote
+    const updatedMetaData = { ...pollMessage.meta_data };
+    
+    // Ensure options structure exists
+    if (!updatedMetaData.options) {
+      updatedMetaData.options = {};
+    }
+    
+    // Remove user from all other options first
+    Object.keys(updatedMetaData.options).forEach(option => {
+      if (option !== selectedOption) {
+        updatedMetaData.options[option] = updatedMetaData.options[option].filter(id => id !== currentUserId);
+      }
     });
+    
+    // Ensure selected option exists
+    if (!updatedMetaData.options[selectedOption]) {
+      updatedMetaData.options[selectedOption] = [];
+    }
+    
+    // Add current user to the selected option if not already there
+    if (!updatedMetaData.options[selectedOption].includes(currentUserId)) {
+      updatedMetaData.options[selectedOption].push(currentUserId);
+    }
+    
+    // Send vote to backend
+    updateVote(conversationIdNum, pollMessage.content, updatedMetaData);
   }
 
   return (
@@ -268,6 +325,16 @@ export default function ChatPage() {
           disabled={!isConnected}
         />
       </div>
+
+      {showPollCreation && (
+        <div className="poll-creation-modal">
+          <div className="poll-creation-overlay" onClick={() => setShowPollCreation(false)} />
+          <div className="poll-creation-container">
+            <button className="close-btn" onClick={() => setShowPollCreation(false)}>×</button>
+            <PollCreation onCreate={handlePollCreate} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -24,9 +24,9 @@ export default function PollCreation( { onCreate }: { onCreate: (poll: Message) 
             id: Date.now(), // temporary ID, backend will assign real ID
             content: question,
             type: MessageType.POLL,
-            metadata: {
-                options: options.reduce((acc, opt) => ({ ...acc, [opt]: [] }), {}) // option -> list of user_ids who voted
-            },
+            meta_data: {
+                options: Object.fromEntries(options.map(opt => [opt, [] as number[]]))
+            } as Record<string, any>,
             sender_user_id: 0, // will be set by backend
             receiver_user_id: null,
             conversation_id: null,

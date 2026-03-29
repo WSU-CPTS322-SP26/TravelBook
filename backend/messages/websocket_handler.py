@@ -84,8 +84,7 @@ async def handle_poll(user_id: int, data: Message, manager: ConnectionManager):
     content = data['content']
     meta_data = data['meta_data']
 
-    # Look up conversation participants from DB so all connected users receive the message,
-    # even if they haven't opened the ChatPage (i.e. not in a conversation room).
+    # Look up conversation and save poll to database
     with Session(engine) as db:
         conversation = db.exec(
             select(Conversation)
@@ -93,19 +92,37 @@ async def handle_poll(user_id: int, data: Message, manager: ConnectionManager):
             .options(selectinload(Conversation.users))
         ).first()
 
-    participant_ids = [u.id for u in conversation.users] if conversation else []
+        if not conversation:
+            raise ValueError("Conversation not found")
 
+        # Create and save message to database
+        poll_message = Message(
+            conversation_id=conversation_id,
+            sender_user_id=user_id,
+            content=content,
+            type=MessageType.POLL,
+            meta_data=meta_data
+        )
+        
+        db.add(poll_message)
+        db.commit()
+        db.refresh(poll_message)
+        
+        participant_ids = [u.id for u in conversation.users]
+        poll_id = poll_message.id
+
+    # Broadcast poll to all participants
     message_payload = {
         'ws_event': 'add_poll',
         'message': {
-            'id': int(conversation_id * 1000 + user_id),  # Temporary ID
+            'id': poll_id,
             'conversation_id': conversation_id,
             'sender_id': user_id,
             'sender_user_id': user_id,
             'content': content,
             'type': MessageType.POLL.value,
             'meta_data': meta_data,
-            'author': data.get('author', f"User {user_id}")
+            'author': f"User {user_id}"
         }
     }
 
@@ -117,15 +134,21 @@ async def handle_update_vote(user_id: int, data: Message, manager: ConnectionMan
     conversation_id = int(data['conversation_id'])
     message_id = int(data['message_id'])
 
-    # Look up poll to adjust vote for user
+    # Look up poll and update vote
     with Session(engine) as db:
-        poll = db.select(Message, message_id)
+        poll = db.exec(
+            select(Message)
+            .where(Message.id == message_id)
+        ).first()
+        
         if not poll:
             raise ValueError("Poll message not found")
-        for field, value in data['meta_data'].items():
-            setattr(poll.meta_data, field, value)
-            db.commit()
-            db.refresh(poll)
+        
+        # Overwrite meta_data with new vote data
+        poll.meta_data = data['meta_data']
+        db.add(poll)
+        db.commit()
+        db.refresh(poll)
 
     # Look up conversation participants from DB so all connected users receive the message,
     # even if they haven't opened the ChatPage (i.e. not in a conversation room).

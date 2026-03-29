@@ -66,6 +66,7 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
   // Send message function
   const sendMessage = (conversationId: string | number, content: string) => {
     let message: Message = {
+      id: null,
       content: content,
       type: MessageType.TEXT,
       meta_data: null,
@@ -89,6 +90,7 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
   // Add poll function
   const addPoll = (conversationId: number, content: string, meta_data: Record<string, Array<any>>) => {
     let message: Message = {
+      id: null,
       content: content,
       type: MessageType.POLL,
       meta_data: meta_data,
@@ -106,6 +108,7 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
 
   const updateVote = (conversationId: number, content: string, meta_data: Record<string, Array<any>>) => {
     let message: Message = {
+      id: null,
       content: content, 
       type: MessageType.POLL,
       meta_data: meta_data,
