@@ -10,6 +10,7 @@ import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
+import SignupPage from "./pages/SignupPage";
 
 import { WebSocketProvider } from "./context/WebSocketContext";
 import { AuthProvider } from "./context/AuthProvider";
@@ -34,6 +35,9 @@ function App() {
         <Routes>
           <Route path="/login" element={
             user ? <Navigate to="/trips" replace /> : <LoginPage onLogin={login} />}/>
+
+          <Route path="/signup" element={
+            user ? <Navigate to="/trips" replace /> : <SignupPage />}/>
 
           <Route path="/trips" element={
               <ProtectedRoute user={user}>

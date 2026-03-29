@@ -40,9 +40,9 @@ export function AuthProvider ({ children }) {
         }
     };
 
-    const register = async(username, password) => {
+    const register = async(username, email, password) => {
         try{
-            const params = {email: username, username:username, password:password};
+            const params = {email: email, username:username, password:password};
             await api.post("/auth/register", params).then( async ()=>{ await generateAccessToken(username, password) } );
             setUser((await api.get("/auth/me")).data );
         } catch(err){
