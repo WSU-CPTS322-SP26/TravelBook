@@ -22,10 +22,10 @@ export enum MessageType {
 }
 
 export interface Message {
-  id: number;
+  id: number | null;
   content: string;
   type: MessageType;
-  metadata: Record<string, any>; // e.g. for polls: { question: string, options: string[] }
+  meta_data: Record<string, Array<any>> | null; // e.g. for polls: { options: string, userIds: number[] } }
   sender_user_id: number;
   receiver_user_id: number | null; // null for group messages
   conversation_id: number | null;
@@ -36,8 +36,7 @@ export interface Message {
 //   "message_type": "poll",
 //   "content": "Where should we eat?",
 //   "metadata": {
-//     "options": ["Ramen", "Sushi", "Tempura"],
-//     "votes": { "Ramen": [1, 3], "Sushi": [2] },
+//     "options": { "Ramen": [1, 3], "Sushi": [2] },
 //     "expires_at": "2026-04-01T00:00:00"
 //   }
 // }

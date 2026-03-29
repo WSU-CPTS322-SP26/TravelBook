@@ -33,7 +33,7 @@ class WebSocketService {
           console.log('WebSocket message received:', data);
           
           // Emit event to all listeners
-          this.emit(data.type, data);
+          this.emit(data.ws_event, data);
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
         }
