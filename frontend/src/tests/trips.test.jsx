@@ -70,13 +70,13 @@ test("delete trip removes from db", async() => {
 })
 
 test('setTripDate updates trip dates', async () => {
-  mock.onGet('http://localhost:8000/trips/1').reply(200, {
+  mock.onGet('/trips/1').reply(200, {
     id: 1,
     name: "Paris Trip",
     description: ""
   });
 
-  mock.onPut('http://localhost:8000/trips/1').reply(200, {
+  mock.onPut('/trips/1').reply(200, {
     id: 1,
     name: "Paris Trip",
     description: "",
