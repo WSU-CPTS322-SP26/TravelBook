@@ -390,7 +390,7 @@ body {
 .chat-bubble-poll {
   background: #020617;
   border: 1px solid rgba(148, 163, 184, 0.5);
-  border-bottom: 0.2rem;
+  border-radius: 0.2rem;
 }
 
 .chat-bubble.theirs {
@@ -411,6 +411,86 @@ body {
 
 .chat-send-btn {
   white-space: nowrap;
+}
+
+/* Message Input Container */
+
+.message-input-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-top: 0.75rem;
+}
+
+.media-button-wrapper {
+  position: relative;
+}
+
+.add-media-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: #f9fafb;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.add-media-btn:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: #2563eb;
+}
+
+.add-media-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.media-options-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 0.75rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  min-width: 120px;
+}
+
+.media-option {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: #f9fafb;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.media-option:hover {
+  background: rgba(37, 99, 235, 0.2);
+}
+
+.media-option:first-child {
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.media-option:last-child {
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+.message-input-container .text-input {
+  flex: 1;
 }
 
 /* Responsive */
