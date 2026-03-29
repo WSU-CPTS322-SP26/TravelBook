@@ -1,10 +1,16 @@
 from sqlmodel import SQLModel, Field, Relationship, Column, TIMESTAMP, JSON
-from typing import Optional, List
+from typing import Dict, Optional, List
 import json
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+from enum import Enum
 
+################################################
+#
+# User Models
+#
+################################################
 
 class UserBase(SQLModel):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -38,6 +44,11 @@ class UserRead(SQLModel):
     username: str
     email: str
 
+################################################
+#
+# Trip Models
+#
+################################################
 
 class TripCreate(SQLModel, table=False):
     name: str
@@ -66,25 +77,53 @@ class TripRead(SQLModel):
     start_date: Optional[datetime]
     end_date: Optional[datetime]
 
+################################################
+#
+# Message Models
+#
+################################################
+
+class MessageType(Enum):
+    TEXT = 'text'
+    POLL = 'poll'
+    IMAGE = 'image'
+    VIDEO = 'video'
+
+class Poll(SQLModel):
+    question: str
+    options: Dict[str, List[int]] = Field(default_factory=dict)  # option -> list of user_ids who voted
+
+# class MessageContent(SQLModel):
+#     type: MessageType
+#     content: json
 
 class Message(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    content: str
+    content: Optional[str] = None
+    type: MessageType = Field(default=MessageType.TEXT)
+    meta_data: Optional[dict] = Field(sa_column= Column(JSON, nullable=True))
     sender_user_id: int = Field(foreign_key="user.id")
     receiver_user_id: Optional[int] = Field(foreign_key="user.id")
     conversation_id: Optional[int] = Field(default=None, foreign_key="conversation.id")
     timestamp: Optional[datetime] = Field(sa_column=Column(TIMESTAMP(timezone=True), default=datetime.now()))
     conversation: Optional["Conversation"] = Relationship(back_populates="messages")
 
-
 class MessageRead(SQLModel):
     id: int
-    content: str
+    content: Optional[str]
+    type: MessageType
+    meta_data: Optional[dict]
     sender_user_id: int
     receiver_user_id: Optional[int]
     conversation_id: Optional[int]
     timestamp: Optional[datetime]
 
+
+################################################
+#
+# Conversation Models
+#
+################################################
 
 class Conversation(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -103,6 +142,11 @@ class ConversationRead(SQLModel):
     messages: List[MessageRead] = []
     trip: Optional[TripRead] = None
 
+################################################
+#
+# Event Models
+#
+################################################
 
 class Location(SQLModel):
     latitude: Optional[float] = None

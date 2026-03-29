@@ -1,9 +1,9 @@
+from datetime import datetime
 from sqlmodel import Session
-from database.models import User, Conversation, Message, Trip, Event, Album, UserConversationLink
-from datetime import datetime, timedelta
+from datetime import timedelta
 from passlib.context import CryptContext
+from database.models import *
 
-# Password hashing
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
@@ -62,7 +62,6 @@ def seed_database(engine):
 
         # Conversation 2: Alice, Charlie, Diana (group chat)
         conv2 = Conversation()
-        conv2.is_group = True
         session.add(conv2)
         session.commit()
         session.refresh(conv2)
@@ -75,7 +74,6 @@ def seed_database(engine):
 
         # Conversation 3: All users (big group)
         conv3 = Conversation()
-        conv3.is_group = True
         session.add(conv3)
         session.commit()
         session.refresh(conv3)
@@ -131,6 +129,22 @@ def seed_database(engine):
                 conversation_id=conv2.id,
                 timestamp=datetime.now() - timedelta(minutes=msg_data["minutes_ago"])
             ))
+
+        # Poll message — no votes yet
+        session.add(Message(
+            content="Which day should we visit Senso-ji Temple?",
+            type=MessageType.POLL,
+            meta_data={
+                "options": {"April 16 (Morning)": [],
+                 "April 17 (Afternoon)": [], 
+                 "April 18 (Evening)": []},
+                "expires_at": "2026-04-10T00:00:00"
+            },
+            sender_user_id=users[0].id,
+            receiver_user_id=None,
+            conversation_id=conv2.id,
+            timestamp=datetime.now() - timedelta(minutes=65)
+        ))
 
         session.commit()
         print(f"✓ Created {len(messages_conv1) + len(messages_conv2)} messages")

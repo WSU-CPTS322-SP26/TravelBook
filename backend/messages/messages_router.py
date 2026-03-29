@@ -54,7 +54,7 @@ def get_conversations(db: Session = Depends(get_session),
       return conversations
 
 @router.get("/conversations/{conversation_id}", response_model=ConversationRead)
-def get_conversation_handler(conversation_id: int,
+def get_conversation_by_id(conversation_id: int,
                      db: Session = Depends(get_session), 
                      current_user: User = Depends(get_current_user)):
     conversation = db.exec(
