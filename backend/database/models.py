@@ -91,18 +91,17 @@ class MessageType(Enum):
 
 class Poll(SQLModel):
     question: str
-    options: List[str]
-    votes: Dict[str, List[int]] = Field(default_factory=dict)  # option -> list of user_ids who voted
+    options: Dict[str, List[int]] = Field(default_factory=dict)  # option -> list of user_ids who voted
 
-class MessageContent(SQLModel):
-    type: MessageType
-    content: json
+# class MessageContent(SQLModel):
+#     type: MessageType
+#     content: json
 
 class Message(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     content: Optional[str] = None
-    message_type: MessageType = Field(default=MessageType.TEXT)
-    metadata: Optional[dict] = Field(sa_column= Column(JSON, nullable=True))
+    type: MessageType = Field(default=MessageType.TEXT)
+    meta_data: Optional[dict] = Field(sa_column= Column(JSON, nullable=True))
     sender_user_id: int = Field(foreign_key="user.id")
     receiver_user_id: Optional[int] = Field(foreign_key="user.id")
     conversation_id: Optional[int] = Field(default=None, foreign_key="conversation.id")
@@ -111,7 +110,9 @@ class Message(SQLModel, table=True):
 
 class MessageRead(SQLModel):
     id: int
-    content: MessageContent
+    content: Optional[str]
+    type: MessageType
+    meta_data: Optional[dict]
     sender_user_id: int
     receiver_user_id: Optional[int]
     conversation_id: Optional[int]
