@@ -2,15 +2,12 @@
 // src/pages/TripListPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api";
 import { useTrip } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
 import PlanTripPage from "../components/TripCreation";
-import NotificationBox from "../components/NotificationBox";
 
 export default function TripListPage() {
   const [trips, setTrips] = useState([]);
-  const [notification, setNotification] = useState(["Hello", "This is a notification"]);
   const [openTripIndex, setOpenTripIndex] = useState(null);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const navigate = useNavigate();
@@ -54,8 +51,6 @@ export default function TripListPage() {
 
   return (
     <div className="page-container">
-      {notification && <NotificationBox title={notification[0]} message={notification[1]} />}
-      
       {/* Plan Trip Modal */}
       {showPlanModal && (
         <div className="modal-overlay" onClick={() => setShowPlanModal(false)}>

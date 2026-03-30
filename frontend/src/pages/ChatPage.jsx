@@ -4,9 +4,9 @@ import PollBox from "../components/PollBox";
 import PollCreation from "../components/PollCreation";
 import { useParams } from "react-router-dom";
 import {useWebSocketContext } from "../context/WebSocketContext"
+import { useNotifications } from "../context/NotificationContext";
 import {WS_EVENTS} from "../services/constant";
 import { useAuth } from "../context/AuthContext";
-import { useTrip } from "../context/TripContext";
 import { useMessage } from "../context/MessageContext";
 import { MessageType } from "../types/types"
 import AvatarStack from "../components/AvatarStack";
@@ -40,6 +40,13 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const currentUserId = user?.id;
+
+  const { setActiveConversation} = useNotifications();
+
+  useEffect(() => {
+    setActiveConversation(conversationIdNum);
+    return () => setActiveConversation(null);
+  }, [conversationIdNum]);
 
   const MessageBoxType = (message) => {
     switch (message.type){

@@ -68,7 +68,7 @@ export default function FriendPage() {
             {friends.map((friend) => (
               <div key={friend.id} className="friend-card">
                 <div className="friend-info">
-                  <h3>{friend.username || `User ${friend.id}`}</h3>
+                  <h3>{friend.name || friend.username || `User ${friend.id}`}</h3>
                 </div>
                 <button
                   className="btn-secondary"

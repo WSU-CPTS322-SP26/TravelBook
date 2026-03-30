@@ -9,6 +9,7 @@ import TripProvider from "./context/TripProvider";
 import EventProvider from "./context/EventProvider";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import FriendProvider from "./context/FriendProvider";
+import NotificationProvider from "./context/NotificationProvider";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -18,7 +19,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <EventProvider>
             <TripProvider>
               <MessageProvider>
-                <App />
+                <NotificationProvider>
+                  <App />
+                </NotificationProvider>
               </MessageProvider>
             </TripProvider>
           </EventProvider>

@@ -757,21 +757,34 @@ body {
 
 /* Notification Box */
 
-.notification-box {
+.notification-container {
   position: fixed;
-  top: 70px;
-  right: 20px;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.notification-box {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #f9fafb;
-  padding: 1rem 1.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 0.75rem;
   box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
   max-width: 400px;
   animation: slideIn 0.3s ease-out, slideOut 0.3s ease-out 4.7s forwards;
-  z-index: 50;
   font-size: 0.95rem;
   font-weight: 500;
   border-left: 4px solid #60a5fa;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.notification-box:hover {
+  opacity: 0.9;
 }
 
 @keyframes slideIn {
