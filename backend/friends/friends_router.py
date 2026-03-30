@@ -32,8 +32,8 @@ def get_suggested_friends(limit: int = None,
     
     suggested = db.exec(query).all()
     
-    # Return as list of dicts with id and username
-    return [{"id": user.id, "name": user.username, "mutual": 0} for user in suggested]
+    # Return as list of dicts with id and name (actual name field)
+    return [{"id": user.id, "name": user.name, "mutual": 0} for user in suggested]
 
 
 

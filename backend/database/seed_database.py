@@ -20,11 +20,11 @@ def seed_database(engine):
         print("Creating users...")
 
         users_data = [
-            {"username": "alice",   "email": "alice@example.com",   "password": "password123"},
-            {"username": "bob",     "email": "bob@example.com",     "password": "password123"},
-            {"username": "charlie", "email": "charlie@example.com", "password": "password123"},
-            {"username": "diana",   "email": "diana@example.com",   "password": "password123"},
-            {"username": "eve",     "email": "eve@example.com",     "password": "password123"},
+            {"username": "alice",   "email": "alice@example.com",   "name": "Alice Johnson",    "password": "password123"},
+            {"username": "bob",     "email": "bob@example.com",     "name": "Bob Smith",        "password": "password123"},
+            {"username": "charlie", "email": "charlie@example.com", "name": "Charlie Williams", "password": "password123"},
+            {"username": "diana",   "email": "diana@example.com",   "name": "Diana Brown",      "password": "password123"},
+            {"username": "eve",     "email": "eve@example.com",     "name": "Eve Davis",        "password": "password123"},
         ]
 
         users = []
@@ -32,6 +32,7 @@ def seed_database(engine):
             user = User(
                 username=user_data["username"],
                 email=user_data["email"],
+                name=user_data["name"],
                 hashed_password=hash_password(user_data["password"]),
                 friends=[]
             )
