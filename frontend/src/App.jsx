@@ -8,9 +8,9 @@ import ChatPage from "./pages/ChatPage";
 import ConversationPage from "./pages/ConversationPage";
 import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
 import SignupPage from "./pages/SignupPage";
+import FriendPage from "./pages/FriendPage";
 import { useAuth } from "./context/AuthContext";
 
 
@@ -53,9 +53,9 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/plan-trip" element={
+          <Route path="/friends" element={
               <ProtectedRoute user={user}>
-                <PlanTripPage />
+                <FriendPage />
               </ProtectedRoute>
             }
           />

@@ -14,6 +14,12 @@ export interface User {
   friends: number[];
 }
 
+export interface SuggestedFriend {
+    id: number;
+    name: string;
+    mutual: number;
+}
+
 export enum MessageType {
   TEXT = 'text',
   POLL = 'poll',
