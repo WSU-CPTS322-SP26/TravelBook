@@ -5,11 +5,14 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { useTrip } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
+import PlanTripPage from "../components/TripCreation";
+import NotificationBox from "../components/NotificationBox";
 
 export default function TripListPage() {
   const [trips, setTrips] = useState([]);
-  
+  const [notification, setNotification] = useState(["Hello", "This is a notification"]);
   const [openTripIndex, setOpenTripIndex] = useState(null);
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const navigate = useNavigate();
   const {getTrips, setActiveTrip, deleteTrip} = useTrip();
   const { token } = useAuth();
@@ -51,7 +54,67 @@ export default function TripListPage() {
 
   return (
     <div className="page-container">
-      <h2>Your Trips</h2>
+      {notification && <NotificationBox title={notification[0]} message={notification[1]} />}
+      
+      {/* Plan Trip Modal */}
+      {showPlanModal && (
+        <div className="modal-overlay" onClick={() => setShowPlanModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Plan Your Trip</h2>
+              <button 
+                className="modal-close"
+                onClick={() => setShowPlanModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <PlanTripPage 
+                isModal={true}
+                onClose={() => setShowPlanModal(false)}
+                onTripCreated={() => setNotification(["Success", "Trip created!"])}
+              />
+            </div>
+
+            <div className="modal-footer">
+              <button
+                onClick={() => setShowPlanModal(false)}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "6px",
+                  background: "transparent",
+                  color: "#e5e7eb",
+                  border: "1px solid rgba(148, 163, 184, 0.7)",
+                  cursor: "pointer",
+                  marginLeft: "auto",
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2>Your Trips</h2>
+        <button
+          onClick={() => setShowPlanModal(true)}
+          style={{
+            padding: "10px 16px",
+            borderRadius: "6px",
+            background: "#2563eb",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "500",
+          }}
+        >
+          + Add Trip
+        </button>
+      </div>
 
       {trips.length === 0 && <p>You haven't saved any trips yet.</p>}
 
