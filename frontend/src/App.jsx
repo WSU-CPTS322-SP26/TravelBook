@@ -11,13 +11,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
 import SignupPage from "./pages/SignupPage";
-
-import { WebSocketProvider } from "./context/WebSocketContext";
-import { AuthProvider } from "./context/AuthProvider";
-import { MessageProvider } from "./context/MessageProvider";
-import { FriendProvider } from "./context/FriendProvider";
-import { TripProvider } from "./context/TripProvider";
-
 import { useAuth } from "./context/AuthContext";
 
 
@@ -25,11 +18,6 @@ function App() {
   const {user, login, logout} = useAuth();
 
   return (
-    <AuthProvider>
-    <WebSocketProvider>
-    <MessageProvider>
-    <FriendProvider>
-    <TripProvider>
       <div className="app-root">
         {user && <NavBar user={user} onLogout={logout} />}
         <Routes>
@@ -75,11 +63,6 @@ function App() {
           <Route path="*" element={<Navigate to={user ? "/trips" : "/login"} replace />} />
         </Routes>
       </div>
-    </TripProvider>
-    </FriendProvider>
-    </MessageProvider>
-    </WebSocketProvider>
-    </AuthProvider>
   );
 }
 

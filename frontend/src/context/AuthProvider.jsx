@@ -6,15 +6,19 @@ import api from "../api";
 export function AuthProvider ({ children }) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem("token")); 
+    const [isAuthReady, setIsAuthReady] = useState(false);
 
     // log back in if token exists and valid
     useEffect(() => {
-        if (!token) return;
+        if (!token) {
+            setIsAuthReady(true);
+            return;
+        };
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`; 
         api.get("/auth/me").then(res => setUser(res.data)).catch(() => {
             setToken(null);
             localStorage.removeItem("token");
-        });
+        }).finally(() => setIsAuthReady(true));
     }, [token]);
 
     const generateAccessToken = async(username, password) => {
@@ -31,9 +35,6 @@ export function AuthProvider ({ children }) {
     const login = async (username, password) => {
         try{
             await generateAccessToken(username, password);
-            const response = await api.get("/auth/me");
-            console.log(response.data);
-            setUser(response.data);
         } catch(err){
             console.log(err, "Error loging in");
             // register(username, password); // TODO: it should not be done here...
@@ -63,7 +64,7 @@ export function AuthProvider ({ children }) {
     
     return (
     <AuthContext.Provider value={{ user, token, login, register, logout, currentUser }}>
-      {children}
+      {isAuthReady ? children : null}
     </AuthContext.Provider>
   );
 };
