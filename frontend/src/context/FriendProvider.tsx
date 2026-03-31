@@ -28,6 +28,17 @@ export function FriendProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const getName = async (userId: number): Promise<string> => {
+        try {
+            const response = await api.get(`/friends/getName/${userId}`);
+            console.log(`Fetched name for userId ${userId}: ${response.data}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching name:", error);
+            return "Unknown User";
+        }
+    };
+
     const addFriend = async (userId: number) => {
         try {
             await api.post(`/friends/addFriend/${userId}`);
@@ -58,7 +69,7 @@ export function FriendProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <FriendContext.Provider value={{ friends, getFriends, getUsername, addFriend, removeFriend, getSuggestedFriends }}>
+        <FriendContext.Provider value={{ friends, getFriends, getUsername, getName, addFriend, removeFriend, getSuggestedFriends }}>
             {children}
         </FriendContext.Provider>
     );

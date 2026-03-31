@@ -20,6 +20,13 @@ def get_username(user_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="User not found")
     return user.username
 
+@router.get("/getName/{user_id}", response_model=str)
+def get_name(user_id: int, db: Session = Depends(get_session)):
+    user = db.exec(select(User).where(User.id == user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user.name
+
 @router.get("/getSuggestedFriends")
 def get_suggested_friends(limit: int = None, 
                          db: Session = Depends(get_session), 
