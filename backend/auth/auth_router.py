@@ -17,7 +17,11 @@ def register_user(user: UserCreate, db: Session = Depends(get_session)):
         raise HTTPException(status_code=400, detail="User already exists")
     
     hashed_password = get_password_hash(user.password)
-    db_user = User.model_validate(user, update={"hashed_password": hashed_password})
+    db_user = User(
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_password
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

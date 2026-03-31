@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import wsService from '../services/websocket';
 import { useAuth } from './AuthContext';
 import { Message, MessageType } from '../types/types';
@@ -24,9 +24,12 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
   const [messages, setMessages] = useState<Message[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
   const {user} = useAuth();
+  const listenersRef = useRef<any>(null);
   
   const userId = user?.id;
+  console.log('WebSocketContext render, userId:', userId, 'user:', user, 'isConnected:', isConnected);
   
+  console.log('WebSocket useEffect triggered, userId:', userId, 'wsService.userId:', wsService.userId);
   // Memoize wsUrl since it's a static environment variable
   const wsUrl = useMemo(() => {
     return ((import.meta as any).env.VITE_WS_URL as string) || 'ws://localhost:8000/ws';
@@ -34,18 +37,52 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
   
 
   useEffect(() => {
-    if(!userId) return;
-    // Connect to WebSocket with user_id in path
+    if(!userId) {
+      console.log('No userId, disconnecting WebSocket');
+      
+      listenersRef.current?.cleanup();
+      listenersRef.current = null;
+      wsService.disconnect();
+      wsService.userId = null;
+      setIsConnected(false);
+      return;
+    }
+
+    console.log('WebSocket useEffect triggered with userId:', userId);
+    
+    // Only connect once per userId - don't reconnect if already connected to this user
+    if (wsService.isConnected() && wsService.userId === userId) {
+      setIsConnected(true);
+      console.log('Already connected to this user');
+      return;
+    }
+
+    // Clear old listeners before reconnecting
+    listenersRef.current?.cleanup();
+    listenersRef.current = null;
+    wsService.disconnect();
+    wsService.userId = userId;
+    
     wsService.connect(`${wsUrl}/${userId}`);
 
-  const onConnected = () => { console.log('Connected to WebSocket'); setIsConnected(true); };
-    const onDisconnected = () => { console.log('Disconnected from WebSocket'); setIsConnected(false); };
-    const onError = (error: any) => { console.error('WebSocket error:', error); };
+    const onConnected = () => { 
+      console.log('Connected to WebSocket'); 
+      setIsConnected(true); 
+    };
+    const onDisconnected = () => { 
+      console.log('Disconnected from WebSocket'); 
+      setIsConnected(false); 
+    };
+    const onError = (error: any) => { 
+      console.error('WebSocket error:', error); 
+    };
     const onNewMessage = (data: any) => {
       console.log("sender_id:", data.message.sender_id, "userId:", userId, "match:", data.message.sender_id === userId);
       setMessages(prev => [...prev, {...data.message, mine: data.message.sender_id == userId}] as Message[]); 
     };
-    const onOnlineUsers = (data: any) => { setOnlineUsers(data.users || []); };
+    const onOnlineUsers = (data: any) => { 
+      setOnlineUsers(data.users ?? []); 
+    };
 
     wsService.on('connected', onConnected);
     wsService.on('disconnected', onDisconnected);
@@ -53,15 +90,17 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
     wsService.on('new_message', onNewMessage);
     wsService.on('online_users', onOnlineUsers);
 
-    return () => {
-      wsService.off('connected', onConnected);
-      wsService.off('disconnected', onDisconnected);
-      wsService.off('error', onError);
-      wsService.off('new_message', onNewMessage);
-      wsService.off('online_users', onOnlineUsers);
-      wsService.disconnect();
+    // Store cleanup function
+    listenersRef.current = {
+      cleanup: () => {
+        wsService.off('connected', onConnected);
+        wsService.off('disconnected', onDisconnected);
+        wsService.off('error', onError);
+        wsService.off('new_message', onNewMessage);
+        wsService.off('online_users', onOnlineUsers);
+      }
     };
-  }, [userId]); // Only userId in dependencies since wsUrl is memoized and static
+  }, [userId, wsUrl]);
 
   // Send message function
   const sendMessage = (conversationId: string | number, content: string) => {
@@ -177,3 +216,5 @@ export const useWebSocketContext = (): WebSocketContextType => {
   }
   return context;
 };
+
+export default WebSocketContext;
