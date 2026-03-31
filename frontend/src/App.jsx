@@ -2,7 +2,8 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import TripsPage from "./pages/TripsPage";
+import TripListPage from "./pages/TripListPage";
+import TripPage from "./pages/TripPage";
 import MapPage from "./pages/MapPage";
 import ChatPage from "./pages/ChatPage";
 import ConversationPage from "./pages/ConversationPage";
@@ -29,7 +30,13 @@ function App() {
 
           <Route path="/trips" element={
               <ProtectedRoute user={user}>
-                <TripsPage />
+                <TripListPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/trips/:id" element={
+              <ProtectedRoute user={user}>
+                <TripPage />
               </ProtectedRoute>
             }
           />
