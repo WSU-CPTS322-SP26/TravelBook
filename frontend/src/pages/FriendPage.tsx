@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useFriend } from "../context/FriendContext";
 import { SuggestedFriend } from "../types/types";
+import FriendsList from "../components/FriendsList";
 
 export default function FriendPage() {
   const { friends, getFriends, addFriend, getSuggestedFriends } = useFriend();
@@ -64,25 +65,7 @@ export default function FriendPage() {
         ) : friends.length === 0 ? (
           <p>You haven't added any friends yet.</p>
         ) : (
-          <div className="friends-list">
-            {friends.map((friend) => (
-              <div key={friend.id} className="friend-card">
-                <div className="friend-info">
-                  <h3>{friend.name || friend.username || `User ${friend.id}`}</h3>
-                </div>
-                <button
-                  className="btn-secondary"
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: "6px",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  Message
-                </button>
-              </div>
-            ))}
-          </div>
+          <FriendsList friends={friends} />
         )}
       </div>
 
