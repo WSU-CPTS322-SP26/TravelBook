@@ -1,30 +1,32 @@
 // src/pages/PlanTripPage.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import api from "../api";
 import generateId from "../generateId";
 import { useTrip } from "../context/TripContext";
 import { useMessage } from "../context/MessageContext";
+import { useEvent } from "../context/EventContext"
 
 export default function PlanTripPage() {
   const [tripName, setTripName] = useState("");
   const [savedLocations, setSavedLocations] = useState([]);
   const [savedTrips, setSavedTrips] = useState([]);
-  const { createTrip } = useTrip();
+  const { createTrip, activeTrip, setActiveTrip } = useTrip();
   const { createConversation } = useMessage();
+  const { getEventsByTrip } = useEvent();
 
 
   // Load saved locations from localStorage (optional)
-  React.useEffect(() => {
-    const stored = localStorage.getItem("savedLocations");
-    if (stored) {
-      setSavedLocations(JSON.parse(stored));
-    }
-  }, []);
+  useEffect(() => {
+    const fn = async () => {
+      setSavedLocations( await getEventsByTrip(activeTrip.id) );
+    };
+
+    if( activeTrip) fn();
+  }, [activeTrip]);
 
   // Save trip
   function saveTrip() {
     if (!tripName ) return;
-
     /*
     class Trip(SQLModel, table=True):
       id: Optional[int] = Field(default=1, primary_key=True)
@@ -64,6 +66,7 @@ export default function PlanTripPage() {
     localStorage.setItem("savedLocations", JSON.stringify(updated));
   }
 
+
   return (
     <div className="page-container">
       <h2>Plan Your Trip</h2>
@@ -83,7 +86,10 @@ export default function PlanTripPage() {
 
       {/* Saved Locations */}
       <h3>Saved Locations</h3>
-      {savedLocations.length === 0 && <p>No saved locations yet.</p>}
+
+      {!activeTrip ? 
+      (!activeTrip && <p>No active trip selected.</p>) :
+      (savedLocations.length === 0 && <p>No saved locations yet.</p>)}
 
       <ul style={{ listStyle: "none", padding: 0 }}>
         {savedLocations.map((loc, index) => (
@@ -101,7 +107,8 @@ export default function PlanTripPage() {
             }}
           >
             <span>
-              {loc.name} — ({loc.lat.toFixed(4)}, {loc.lng.toFixed(4)})
+              
+              {loc.name} — ({loc.location.latitude.toFixed(4)}, {loc.location.longitude.toFixed(4)})
             </span>
 
             <button

@@ -1,5 +1,5 @@
 // src/pages/MapPage.jsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { act, useEffect, useRef, useState } from "react";
 import { useEvent } from "../context/EventContext";
 import { useTrip } from "../context/TripContext";
 
@@ -17,6 +17,7 @@ export default function MapPage() {
 
 
   useEffect(() => {
+    if (!activeTrip) return;
     if (!window.google || !window.google.maps) return;
 
     // Create map
@@ -24,7 +25,7 @@ export default function MapPage() {
       center: { lat: 38.7946, lng: -106.5348 },
       zoom: 4,
       mapId: "DEMO_MAP_ID",
-    });
+    }, [activeTrip]);
 
     // Autocomplete search
     const autocomplete = new window.google.maps.places.Autocomplete(
@@ -120,7 +121,7 @@ export default function MapPage() {
       "",
       activeTrip.id,
       new Date().toISOString(),
-      { lat: selectedLocation.lat, lng: selectedLocation.lng, name: selectedLocation.name }
+      { latitude: selectedLocation.lat, longitude: selectedLocation.lng, name: selectedLocation.name }
     );
 
     setSavedLocations((prev) => [...prev, selectedLocation]);
@@ -138,102 +139,115 @@ export default function MapPage() {
     <div className="page-container">
       <h2>Select a Location</h2>
 
-      {/* Search Bar */}
-      <input
-        ref={inputRef}
-        className="text-input"
-        placeholder="Search for any place..."
-        style={{
-          width: "100%",
-          padding: "10px",
-          marginBottom: "12px",
-          borderRadius: "8px",
-        }}
-      />
-
-      {/* Map */}
-      <div
-        ref={mapRef}
-        style={{
-          width: "100%",
-          height: "400px",
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}
-      />
-
-      {/* Selected Location Preview */}
-      {selectedLocation && (
-        <div
+      {!activeTrip ? (
+      <div style={{
+        marginTop: "24px",
+        padding: "16px",
+        borderRadius: "8px",
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        textAlign: "center",
+      }}>
+        <p>No active trip selected. Please select or create a trip before adding locations.</p>
+      </div>): (<>
+        {/* Search Bar */}
+        <input
+          ref={inputRef}
+          className="text-input"
+          placeholder="Search for any place..."
           style={{
-            marginTop: "16px",
-            padding: "12px",
-            background: "rgba(255,255,255,0.05)",
+            width: "100%",
+            padding: "10px",
+            marginBottom: "12px",
             borderRadius: "8px",
-            border: "1px solid rgba(255,255,255,0.1)",
           }}
-        >
-          <h3>Selected Location</h3>
-          <p><strong>Name:</strong> {selectedLocation.name}</p>
+        />
 
-          <button
-            onClick={saveLocation}
+        {/* Map */}
+        <div
+          ref={mapRef}
+          style={{
+            width: "100%",
+            height: "400px",
+            borderRadius: "12px",
+            overflow: "hidden",
+          }}
+        />
+
+        {/* Selected Location Preview */}
+        {selectedLocation && (
+          <div
             style={{
-              marginTop: "10px",
-              padding: "10px 16px",
+              marginTop: "16px",
+              padding: "12px",
+              background: "rgba(255,255,255,0.05)",
               borderRadius: "8px",
-              background: "#4CAF50",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
+              border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
-            Save Location
-          </button>
-        </div>
-      )}
+            <h3>Selected Location</h3>
+            <p><strong>Name:</strong> {selectedLocation.name}</p>
 
-      {/* Saved Locations List */}
-      {savedLocations.length > 0 && (
-        <div style={{ marginTop: "24px" }}>
-          <h3>Saved Locations</h3>
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {savedLocations.map((loc, index) => (
-              <li
-                key={index}
-                style={{
-                  marginBottom: "10px",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span>
-                  {loc.name}
-                </span>
+            <button
+              onClick={saveLocation}
+              style={{
+                marginTop: "10px",
+                padding: "10px 16px",
+                borderRadius: "8px",
+                background: "#4CAF50",
+                color: "white",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Save Location
+            </button>
+          </div>
+        )}
 
-                <button
-                  onClick={() => deleteLocation(index)}
+        {/* Saved Locations List */}
+        {savedLocations.length > 0 && (
+          <div style={{ marginTop: "24px" }}>
+            <h3>Saved Locations</h3>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {savedLocations.map((loc, index) => (
+                <li
+                  key={index}
                   style={{
-                    padding: "6px 10px",
-                    borderRadius: "6px",
-                    background: "#d9534f",
-                    color: "white",
-                    border: "none",
-                    cursor: "pointer",
+                    marginBottom: "10px",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                  <span>
+                    {loc.name}
+                  </span>
+
+                  <button
+                    onClick={() => deleteLocation(index)}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "6px",
+                      background: "#d9534f",
+                      color: "white",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </>
+    )}
     </div>
   );
 }
