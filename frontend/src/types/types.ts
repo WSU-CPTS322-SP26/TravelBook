@@ -11,7 +11,14 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  name: string;
   friends: number[];
+}
+
+export interface SuggestedFriend {
+    id: number;
+    name: string;
+    mutual: number;
 }
 
 export enum MessageType {
@@ -53,6 +60,14 @@ export interface Trip {
 
 export interface Friend {
   id: number;
+  name: string;
   username: string;
   email: string;
+}
+
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'error' | 'warning';
 }

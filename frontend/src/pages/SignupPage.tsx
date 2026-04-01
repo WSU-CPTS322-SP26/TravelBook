@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function SignupPage() {
+  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +15,7 @@ export default function SignupPage() {
   const { register } = useAuth();
 
   const validateForm = () => {
-    if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!name.trim() || !username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError("All fields are required");
       return false;
     }
@@ -47,7 +48,7 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await register(username.trim(), email.trim(), password.trim());
+      await register(name.trim(), username.trim(), email.trim(), password.trim());
       navigate("/");
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || "Signup failed. Please try again.");
@@ -65,6 +66,18 @@ export default function SignupPage() {
         {error && <div className="auth-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
+          <div>
+            <label className="field-label">Full Name</label>
+            <input
+              className="text-input"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+              disabled={loading}
+            />
+          </div>
+
           <div>
             <label className="field-label">Username</label>
             <input

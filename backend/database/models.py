@@ -14,8 +14,9 @@ from enum import Enum
 
 class UserBase(SQLModel):
     id: Optional[int] = Field(default=None, primary_key=True)
-    username: str
-    email: str
+    username: str = Field(unique=True)
+    email: str = Field(unique=True)
+    name: str
 
 
 class UserConversationLink(SQLModel, table=True):
@@ -36,6 +37,7 @@ class UserCreate(UserBase):
 class UserUpdate(UserBase):
     username: Optional[str] = None
     email: Optional[str] = None
+    name: Optional[str] = None
     password: Optional[str] = None
 
 
@@ -43,6 +45,7 @@ class UserRead(SQLModel):
     id: int
     username: str
     email: str
+    name: str
 
 ################################################
 #

@@ -20,10 +20,10 @@ export default function Navbar({ user, onLogout }) {
           Map
         </NavLink>
         <NavLink to="/chat" className="nav-link">
-          Group Chat
+          Chat
         </NavLink>
-        <NavLink to="/plan-trip" className="nav-link">
-        Plan Trip
+        <NavLink to="/friends" className="nav-link">
+          Friends
         </NavLink>
       </div>
      <div className="navbar-right">
