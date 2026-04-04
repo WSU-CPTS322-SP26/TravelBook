@@ -13,6 +13,7 @@ import CalendarPage from "./pages/CalendarPage";
 import SignupPage from "./pages/SignupPage";
 import FriendPage from "./pages/FriendPage";
 import { useAuth } from "./context/AuthContext";
+import BillingPage from "./pages/BillingPage";
 
 
 function App() {
@@ -63,6 +64,12 @@ function App() {
           <Route path="/friends" element={
               <ProtectedRoute user={user}>
                 <FriendPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/billing" element={
+              <ProtectedRoute user={user}>
+                <BillingPage />
               </ProtectedRoute>
             }
           />
