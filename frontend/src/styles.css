@@ -1165,8 +1165,15 @@ body {
     min-height: 160px;
   }
 
+  .navbar {
+    flex-wrap: wrap;
+  }
+
   .navbar-center {
-    display: none;
+    flex-wrap: wrap;
+    order: 3;
+    width: 100%;
+    justify-content: center;
   }
 
   .chat-page {

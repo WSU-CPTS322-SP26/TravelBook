@@ -58,7 +58,7 @@ export function AuthProvider ({ children }) {
         api.interceptors.request.clear();
     };
 
-    const currentUser = async () => {
+    const currentUser = async () => { // i dont think this is a necessary function?
         return await api.get("/auth/me");
     }
     
