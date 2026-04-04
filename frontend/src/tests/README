@@ -1,3 +1,1 @@
-These tests are STRICLY frontend, they do not fetch data from the database, but merely simulate what they would recieve.
-
-also `npm test` to run tests :3
+These tests are STRICLY frontend, they do not fetch data from the database, but merely simulate what they would recieve. Use `npm test` to run tests.
