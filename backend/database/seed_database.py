@@ -1,9 +1,9 @@
+from datetime import datetime
 from sqlmodel import Session
-from database.models import User, Conversation, Message, Trip, Event, Album, UserConversationLink
-from datetime import datetime, timedelta
+from datetime import timedelta
 from passlib.context import CryptContext
+from database.models import *
 
-# Password hashing
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
@@ -20,11 +20,11 @@ def seed_database(engine):
         print("Creating users...")
 
         users_data = [
-            {"username": "alice",   "email": "alice@example.com",   "password": "password123"},
-            {"username": "bob",     "email": "bob@example.com",     "password": "password123"},
-            {"username": "charlie", "email": "charlie@example.com", "password": "password123"},
-            {"username": "diana",   "email": "diana@example.com",   "password": "password123"},
-            {"username": "eve",     "email": "eve@example.com",     "password": "password123"},
+            {"username": "alice",   "email": "alice@example.com",   "name": "Alice Johnson",    "password": "password123"},
+            {"username": "bob",     "email": "bob@example.com",     "name": "Bob Smith",        "password": "password123"},
+            {"username": "charlie", "email": "charlie@example.com", "name": "Charlie Williams", "password": "password123"},
+            {"username": "diana",   "email": "diana@example.com",   "name": "Diana Brown",      "password": "password123"},
+            {"username": "eve",     "email": "eve@example.com",     "name": "Eve Davis",        "password": "password123"},
         ]
 
         users = []
@@ -32,6 +32,7 @@ def seed_database(engine):
             user = User(
                 username=user_data["username"],
                 email=user_data["email"],
+                name=user_data["name"],
                 hashed_password=hash_password(user_data["password"]),
                 friends=[]
             )
@@ -43,6 +44,48 @@ def seed_database(engine):
             session.refresh(user)
 
         print(f"✓ Created {len(users)} users")
+
+        # ════════════════════════════════════════════════════════
+        # CREATE FRIENDSHIPS
+        # ════════════════════════════════════════════════════════
+        for user in users:
+            session.refresh(user)
+
+        # ════════════════════════════════════════════════════════
+        # WIRE UP FRIENDSHIPS (based on shared conversations)
+        # ════════════════════════════════════════════════════════
+        # alice(0) ↔ bob(1)         — conv1
+        # alice(0) ↔ charlie(2)     — conv2
+        # alice(0) ↔ diana(3)       — conv2
+        # charlie(2) ↔ diana(3)     — conv2
+        # everyone ↔ everyone       — conv3 adds eve(4) to the mix
+
+        friend_pairs = [
+            (0, 1),  # alice ↔ bob
+            (0, 2),  # alice ↔ charlie
+            (0, 3),  # alice ↔ diana
+            (0, 4),  # alice ↔ eve    (conv3)
+            (1, 2),  # bob ↔ charlie  (conv3)
+            (1, 3),  # bob ↔ diana    (conv3)
+            (1, 4),  # bob ↔ eve      (conv3)
+            (2, 3),  # charlie ↔ diana
+            (2, 4),  # charlie ↔ eve  (conv3)
+            (3, 4),  # diana ↔ eve    (conv3)
+        ]
+
+        for a, b in friend_pairs:
+            users[a].friends = list(set(users[a].friends + [users[b].id]))
+            users[b].friends = list(set(users[b].friends + [users[a].id]))
+
+        for user in users:
+            session.add(user)
+
+        session.commit()
+        for user in users:
+            session.refresh(user)
+
+        print(f"✓ Wired friendships across {len(friend_pairs)} pairs")
+
 
         # ════════════════════════════════════════════════════════
         # CREATE CONVERSATIONS
@@ -62,7 +105,6 @@ def seed_database(engine):
 
         # Conversation 2: Alice, Charlie, Diana (group chat)
         conv2 = Conversation()
-        conv2.is_group = True
         session.add(conv2)
         session.commit()
         session.refresh(conv2)
@@ -75,7 +117,6 @@ def seed_database(engine):
 
         # Conversation 3: All users (big group)
         conv3 = Conversation()
-        conv3.is_group = True
         session.add(conv3)
         session.commit()
         session.refresh(conv3)
@@ -131,6 +172,22 @@ def seed_database(engine):
                 conversation_id=conv2.id,
                 timestamp=datetime.now() - timedelta(minutes=msg_data["minutes_ago"])
             ))
+
+        # Poll message — no votes yet
+        session.add(Message(
+            content="Which day should we visit Senso-ji Temple?",
+            type=MessageType.POLL,
+            meta_data={
+                "options": {"April 16 (Morning)": [],
+                 "April 17 (Afternoon)": [], 
+                 "April 18 (Evening)": []},
+                "expires_at": "2026-04-10T00:00:00"
+            },
+            sender_user_id=users[0].id,
+            receiver_user_id=None,
+            conversation_id=conv2.id,
+            timestamp=datetime.now() - timedelta(minutes=65)
+        ))
 
         session.commit()
         print(f"✓ Created {len(messages_conv1) + len(messages_conv2)} messages")

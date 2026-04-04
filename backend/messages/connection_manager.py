@@ -100,12 +100,31 @@ class ConnectionManager:
             for connection in self.user_connections[user_id]:
                 try:
                     await connection.send_json(message)
+                except RuntimeError as e:
+                    # Connection already closed
+                    print(f"Error sending message to user {user_id}: {e}")
+                    disconnected.append(connection)
                 except Exception as e:
                     print(f"Error sending message to user {user_id}: {e}")
                     disconnected.append(connection)
 
-            for connection in disconnected:
-                self.user_connections[user_id].remove(connection)
+            # Remove closed connections
+            with_active_connections = [
+                conn for conn in self.user_connections[user_id] 
+                if conn not in disconnected
+            ]
+            if with_active_connections:
+                self.user_connections[user_id] = with_active_connections
+            else:
+                # All connections closed, clean up
+                del self.user_connections[user_id]
+                if user_id in self.user_active_rooms:
+                    for conv_id in list(self.user_active_rooms[user_id]):
+                        if conv_id in self.conversation_rooms:
+                            self.conversation_rooms[conv_id].discard(user_id)
+                            if not self.conversation_rooms[conv_id]:
+                                del self.conversation_rooms[conv_id]
+                    del self.user_active_rooms[user_id]
 
 
     async def send_to_conversation(self, conversation_id: int, message: str):

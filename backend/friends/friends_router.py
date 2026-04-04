@@ -20,6 +20,30 @@ def get_username(user_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="User not found")
     return user.username
 
+@router.get("/getName/{user_id}", response_model=str)
+def get_name(user_id: int, db: Session = Depends(get_session)):
+    user = db.exec(select(User).where(User.id == user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user.name
+
+@router.get("/getSuggestedFriends")
+def get_suggested_friends(limit: int = None, 
+                         db: Session = Depends(get_session), 
+                         current_user: User = Depends(get_current_user)):
+    # Get all users who are not already friends with current user
+    query = select(User).where(~User.id.in_(current_user.friends + [current_user.id]))
+    
+    if limit:
+        query = query.limit(limit)
+    
+    suggested = db.exec(query).all()
+    
+    # Return as list of dicts with id and name (actual name field)
+    return [{"id": user.id, "name": user.name, "mutual": 0} for user in suggested]
+
+
+
 @router.post("/addFriend/{user_id}")
 def add_friend(user_id: int,
                db: Session = Depends(get_session), 

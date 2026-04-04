@@ -1,47 +1,91 @@
 // src/pages/ChatPage.jsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import PollBox from "../components/PollBox";
+import PollCreation from "../components/PollCreation";
 import { useParams } from "react-router-dom";
 import {useWebSocketContext } from "../context/WebSocketContext"
+import { useNotifications } from "../context/NotificationContext";
 import {WS_EVENTS} from "../services/constant";
 import { useAuth } from "../context/AuthContext";
-import { useTrip } from "../context/TripContext";
 import { useMessage } from "../context/MessageContext";
+import { MessageType } from "../types/types"
+import AvatarStack from "../components/AvatarStack";
+
+const MemoizedAvatarStack = React.memo(AvatarStack);
 
 export default function ChatPage() {
       // const {activeTrip} = useTrip();
   const {conversationId} = useParams();
   const conversationIdNum = Number(conversationId);
   const {user} = useAuth();
-  const {getConversation, getConversations, sendMessage: sendContextMessage} = useMessage();
+  const {getConversation, sendMessage: sendContextMessage} = useMessage();
   const [currentConversation, setCurrentConversation] = useState(null);
 
   const { 
-    sendMessage, 
+    sendMessage,
     sendTyping, 
     subscribe,
     joinConversation,
     leaveConversation,
-    isConnected 
+    updateVote,
+    addPoll,
+    isConnected
   } = useWebSocketContext();
 
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState([]);
+  const [showMediaOptions, setShowMediaOptions] = useState(false);
+  const [showPollCreation, setShowPollCreation] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const currentUserId = user?.id;
 
+  const { setActiveConversation} = useNotifications();
 
-  // Join / leave conversation
   useEffect(() => {
-    // Join conversation when component mounts
+    setActiveConversation(conversationIdNum);
+    return () => setActiveConversation(null);
+  }, [conversationIdNum]);
+
+  const MessageBoxType = (message) => {
+    switch (message.type){
+      case MessageType.TEXT:
+        // console.log("Rendering text message", message.content);
+        return <div className={`chat-bubble ${message.sender_user_id === currentUserId ? "mine" : "theirs"}`}>
+              {message.content || message.text}
+            </div>;
+
+      case MessageType.POLL:
+        console.log("Rendering poll message", message);
+        return <PollBox poll={message} onVote={(option) => handleVote(message, option)} />
+            
+      case MessageType.IMAGE:
+        console.log("Invalid media");
+        return;
+
+      case MessageType.VIDEO:
+        console.log("Invalid media");
+        return;
+
+      default:
+        console.log("Invalid media", message);
+        return;
+    }
+  };
+
+  // Join conversation only after websocket is connected.
+  // This also re-joins after reconnects because isConnected toggles back to true.
+  useEffect(() => {
+    if (!isConnected || !currentUserId) return;
     joinConversation(conversationIdNum);
-    
-    // Leave conversation when component unmounts or conversation changes
+
     return () => {
-      leaveConversation(conversationIdNum);
+      if (isConnected) {
+        leaveConversation(conversationIdNum);
+      }
     };
-  }, [conversationIdNum, joinConversation, leaveConversation]);
+  }, [conversationIdNum, currentUserId, isConnected, joinConversation, leaveConversation]);
 
   // Load message history — wait for auth to resolve before fetching
   useEffect(() => {
@@ -52,9 +96,9 @@ export default function ChatPage() {
         const userMap = {};
         (data.users || []).forEach(u => { userMap[u.id] = u.username; });
         const msgs = Array.isArray(data.messages) ? data.messages : [];
+        msgs.map(m => console.log("Loaded message", m));
         setMessages(msgs.map(m => ({
           ...m,
-          mine: m.sender_user_id === currentUserId,
           author: userMap[m.sender_user_id] ?? `User ${m.sender_user_id}`,
         })));
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -62,20 +106,34 @@ export default function ChatPage() {
       .catch(err => console.error('Error loading messages:', err));
   }, [conversationIdNum, currentUserId]);
 
-  // Subscribe to new message
+
+  // Subscribe to new messages and polls
   useEffect(() => {
-    const unsubscribe = subscribe(WS_EVENTS.NEW_MESSAGE, (data) => {
+    const handleNewMessage = (data) => {
       const msg = data.message;
+      console.log("Received new message", msg);
       if (Number(msg.conversation_id) !== conversationIdNum) return;
-      const mine = (msg.sender_user_id ?? msg.sender_id) === currentUserId;
-      // Skip echo of our own messages — already added optimistically on send
-      if (mine) return;
-      setMessages(prev => [...prev, { ...msg, mine }]);
+      setMessages(prev => [...prev, { ...msg }]);
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-    });
+    };
+
+    const handleNewPoll = (data) => {
+      const msg = data.message;
+      console.log("Received new poll", msg);
+      if (Number(msg.conversation_id) !== conversationIdNum) return;
+      setMessages(prev => [...prev, { ...msg }]);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    };
+
+    const unsubscribeMessage = subscribe(WS_EVENTS.NEW_MESSAGE, handleNewMessage);
+    const unsubscribePoll = subscribe(WS_EVENTS.ADD_POLL, handleNewPoll);
     
-    return unsubscribe;
+    return () => {
+      unsubscribeMessage();
+      unsubscribePoll();
+    };
   }, [conversationIdNum, currentUserId, subscribe]);
+
 
   // Subcribing to typing indicator
   useEffect(() => {
@@ -105,13 +163,6 @@ export default function ChatPage() {
     const text = inputMessage.trim();
     if (!text || !isConnected) return;
     // Optimistically add own message immediately
-    setMessages(prev => [...prev, {
-      id: Date.now(),
-      conversation_id: conversationIdNum,
-      sender_user_id: currentUserId,
-      content: text,
-      mine: true,
-    }]);
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     sendMessage(conversationIdNum, text);
     sendContextMessage(text, conversationIdNum, user.id);
@@ -119,9 +170,34 @@ export default function ChatPage() {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   };
 
+  // Handle media options
+  const handleAddMedia = (mediaType) => {
+    if (mediaType === 'poll') {
+      setShowPollCreation(true);
+      setShowMediaOptions(false);
+    } else {
+      console.log(`Adding ${mediaType} media`);
+      // TODO: Implement media upload functionality
+      setShowMediaOptions(false);
+    }
+  };
 
-  // Hnadle input change
-    const handleInputChange = (e) => {
+  // Handle poll creation
+  const handlePollCreate = (poll) => {
+    // Extract options from the poll meta_data
+    const pollContent = poll.content;
+    const pollMetaData = poll.meta_data;
+    
+    // Send poll to backend
+    addPoll(conversationIdNum, pollContent, pollMetaData);
+    
+    // Close the poll creation modal
+    setShowPollCreation(false);
+  };
+
+
+  // Handle input change
+  const handleInputChange = (e) => {
     setInputMessage(e.target.value);
     
     // Send typing indicator
@@ -141,22 +217,52 @@ export default function ChatPage() {
   };
 
   // Handle Enter key to send message
-    const handleKeyDown = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
-    const getConversationName = () => {
-        if (!currentConversation) return `Conversation ${conversationIdNum}`;
-          if (currentConversation.is_group) {
-              return currentConversation.name ?? `Conversation ${currentConversation.id}`;
-          }
-  
-        const otherUser = (currentConversation.users || []).find((participant) => participant.id !== user.id);
-          return otherUser?.username ?? `Conversation ${currentConversation.id}`;
-      };
+  const getConversationName = () => {
+      if (!currentConversation) return `Conversation ${conversationIdNum}`;
+        if (currentConversation.is_group) {
+            return currentConversation.name ?? `Conversation ${currentConversation.id}`;
+        }
+
+      const otherUser = (currentConversation.users || []).find((participant) => participant.id !== user.id);
+        return otherUser?.username ?? `Conversation ${currentConversation.id}`;
+    };
+
+  const handleVote = (pollMessage, selectedOption) => {
+    // Build updated meta_data with the vote
+    const updatedMetaData = { ...pollMessage.meta_data };
+    
+    // Ensure options structure exists
+    if (!updatedMetaData.options) {
+      updatedMetaData.options = {};
+    }
+    
+    // Remove user from all other options first
+    Object.keys(updatedMetaData.options).forEach(option => {
+      if (option !== selectedOption) {
+        updatedMetaData.options[option] = updatedMetaData.options[option].filter(id => id !== currentUserId);
+      }
+    });
+    
+    // Ensure selected option exists
+    if (!updatedMetaData.options[selectedOption]) {
+      updatedMetaData.options[selectedOption] = [];
+    }
+    
+    // Add current user to the selected option if not already there
+    if (!updatedMetaData.options[selectedOption].includes(currentUserId)) {
+      updatedMetaData.options[selectedOption].push(currentUserId);
+    }
+    
+    // Send vote to backend
+    updateVote(conversationIdNum, pollMessage.content, updatedMetaData);
+  }
 
   return (
     <div className="page-container chat-page">
@@ -164,30 +270,58 @@ export default function ChatPage() {
         <div>
           {getConversationName()}
         </div>
-        <div className="avatar-stack">
-          <div className="avatar-circle">A</div>
-          <div className="avatar-circle">S</div>
-          <div className="avatar-circle">E</div>
-          <div className="avatar-circle">M</div>
-        </div>
+        <MemoizedAvatarStack userIds={useMemo(() => (currentConversation?.users || []).map(u => u.id), [currentConversation?.users])} />
       </div>
 
       <div className="chat-body">
         {messages.map((m, index) => (
           <div
             key={m.id ?? index} // not a long term fix
-            className={`chat-message-row ${m.mine ? "mine" : "theirs"}`}
+            className={`chat-message-row ${m.sender_user_id === currentUserId ? "mine" : "theirs"}`}
           >
-            {!m.mine && <div className="chat-author">{m.author}</div>}
-            <div className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
-              {m.content || m.text}
-            </div>
+            {m.sender_user_id !== currentUserId && <div className="chat-author">{m.author}</div>}
+            {MessageBoxType(m)}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
       <div className="message-input-container">
+        <div className="media-button-wrapper">
+          <button
+            className="add-media-btn"
+            onClick={() => setShowMediaOptions(!showMediaOptions)}
+            title="Add media"
+          >
+            +
+          </button>
+          {showMediaOptions && (
+            <div className="media-options-menu">
+              <button
+                className="media-option"
+                onClick={() => handleAddMedia('image')}
+              >
+                Image
+              </button>
+              <button
+                className="media-option"
+                onClick={() => handleAddMedia('video')}
+              >
+                Video
+              </button>
+              <button
+                className="media-option"
+                onClick={() => handleAddMedia('file')}
+              >
+                File
+              </button>
+              <button
+                className="media-option"
+                onClick={() => handleAddMedia('poll')}
+                >Poll</button>
+            </div>
+          )}
+        </div>
         <input
           type="text"
           value={inputMessage}
@@ -198,6 +332,17 @@ export default function ChatPage() {
           disabled={!isConnected}
         />
       </div>
+
+      {showPollCreation && (
+        <div className="poll-creation-modal">
+          <div className="poll-creation-overlay" onClick={() => setShowPollCreation(false)} />
+          <div className="poll-creation-container">
+            <button className="close-btn" onClick={() => setShowPollCreation(false)}>×</button>
+            <PollCreation onCreate={handlePollCreate} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

@@ -11,3 +11,4 @@ class UserResponse(BaseModel):
     id: int
     email: str | None = None
     username: str | None = None
+    name: str | None = None

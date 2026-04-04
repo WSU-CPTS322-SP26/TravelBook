@@ -2,21 +2,16 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import TripsPage from "./pages/TripsPage";
+import TripListPage from "./pages/TripListPage";
+import TripPage from "./pages/TripPage";
 import MapPage from "./pages/MapPage";
 import ChatPage from "./pages/ChatPage";
 import ConversationPage from "./pages/ConversationPage";
 import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import PlanTripPage from "./pages/PlanTripPage";
 import CalendarPage from "./pages/CalendarPage";
-
-import { WebSocketProvider } from "./context/WebSocketContext";
-import { AuthProvider } from "./context/AuthProvider";
-import { MessageProvider } from "./context/MessageProvider";
-import { FriendProvider } from "./context/FriendProvider";
-import { TripProvider } from "./context/TripProvider";
-
+import SignupPage from "./pages/SignupPage";
+import FriendPage from "./pages/FriendPage";
 import { useAuth } from "./context/AuthContext";
 
 
@@ -24,19 +19,24 @@ function App() {
   const {user, login, logout} = useAuth();
 
   return (
-    <WebSocketProvider>
-    <MessageProvider>
-    <FriendProvider>
-    <TripProvider>
       <div className="app-root">
         {user && <NavBar user={user} onLogout={logout} />}
         <Routes>
           <Route path="/login" element={
             user ? <Navigate to="/trips" replace /> : <LoginPage onLogin={login} />}/>
 
+          <Route path="/signup" element={
+            user ? <Navigate to="/trips" replace /> : <SignupPage />}/>
+
           <Route path="/trips" element={
               <ProtectedRoute user={user}>
-                <TripsPage />
+                <TripListPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/trips/:id" element={
+              <ProtectedRoute user={user}>
+                <TripPage />
               </ProtectedRoute>
             }
           />
@@ -60,9 +60,9 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/plan-trip" element={
+          <Route path="/friends" element={
               <ProtectedRoute user={user}>
-                <PlanTripPage />
+                <FriendPage />
               </ProtectedRoute>
             }
           />
@@ -70,10 +70,6 @@ function App() {
           <Route path="*" element={<Navigate to={user ? "/trips" : "/login"} replace />} />
         </Routes>
       </div>
-    </TripProvider>
-    </FriendProvider>
-    </MessageProvider>
-    </WebSocketProvider>
   );
 }
 

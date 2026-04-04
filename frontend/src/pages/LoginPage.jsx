@@ -1,5 +1,6 @@
 // src/pages/LoginPage.jsx
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage({ onLogin }) {
@@ -37,6 +38,15 @@ export default function LoginPage({ onLogin }) {
             Continue
           </button>
         </form>
+
+        <div className="auth-footer">
+          <p>
+            Don't have an account?{" "}
+            <Link to="/signup" className="auth-link">
+              Sign up
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

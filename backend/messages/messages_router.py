@@ -54,7 +54,7 @@ def get_conversations(db: Session = Depends(get_session),
       return conversations
 
 @router.get("/conversations/{conversation_id}", response_model=ConversationRead)
-def get_conversation_handler(conversation_id: int,
+def get_conversation_by_id(conversation_id: int,
                      db: Session = Depends(get_session), 
                      current_user: User = Depends(get_current_user)):
     conversation = db.exec(
@@ -70,3 +70,48 @@ def get_conversation_handler(conversation_id: int,
     if current_user.id not in [user.id for user in conversation.users]:
         raise HTTPException(status_code=403, detail="Not authorized to view this conversation")
     return conversation
+
+@router.post("/conversations/{conversation_id}/participants/{user_id}", response_model=ConversationRead)
+def add_conversation_participant(conversation_id: int,
+                                 user_id: int,
+                                 db: Session = Depends(get_session),
+                                 current_user: User = Depends(get_current_user)):
+    conversation = db.exec(
+        select(Conversation)
+        .where(Conversation.id == conversation_id)
+        .options(
+            selectinload(Conversation.users),
+            selectinload(Conversation.messages),
+            selectinload(Conversation.trip)
+        )
+    ).first()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    if current_user.id not in [user.id for user in conversation.users]:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this conversation")
+
+    user_to_add = db.exec(select(User).where(User.id == user_id)).first()
+    if not user_to_add:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_to_add in conversation.users:
+        return conversation
+
+    conversation.users.append(user_to_add)
+    conversation.is_group = True
+    db.add(conversation)
+    db.commit()
+    db.refresh(conversation)
+
+    refreshed = db.exec(
+        select(Conversation)
+        .where(Conversation.id == conversation_id)
+        .options(
+            selectinload(Conversation.users),
+            selectinload(Conversation.messages),
+            selectinload(Conversation.trip)
+        )
+    ).first()
+    return refreshed
