@@ -25,6 +25,9 @@ export default function Navbar({ user, onLogout }) {
         <NavLink to="/friends" className="nav-link">
           Friends
         </NavLink>
+         <NavLink to="/billing" className="nav-link">
+          Billing
+        </NavLink>
       </div>
      <div className="navbar-right">
       <span className="navbar-user">{user?.username}</span>
