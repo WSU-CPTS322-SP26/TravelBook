@@ -1,6 +1,4 @@
-/* Made using generative ai*/
 import React, { useState } from "react";
-import "./billing.css"
 
 const plans = [
   {
@@ -19,7 +17,7 @@ const plans = [
     name: "Voyager",
     price: 24,
     description: "For travel squads",
-    features: ["Everything in Explorer", "Up to 10 collaborators", "Shared itineraries", "AI trip planning", "Export to PDF", "Dedicated support"],
+    features: ["Everything in Explorer", "Up to 10 collaborators", "Shared itineraries", "Export to PDF", "Dedicated support"],
   },
 ];
 function PaymentModal({ onClose, card, setCard}) {
@@ -149,7 +147,7 @@ export default function BillingPage() {
             <h3 className="billing-title">Billing Details</h3>
             <div className="billing-row">
                 <span className="billing-label">Current plan</span>
-                <span className="billing-value">Explorer — Monthly</span>
+                <span className="billing-value">{ (currentPlan.name && billing) ? currentPlan.name + " - " + billing.replace(/^./, c=>c.toUpperCase()) : "No plan selected"}</span>
             </div>
             <div className="billing-row">
                 <span className="billing-label">Next billing date</span>
