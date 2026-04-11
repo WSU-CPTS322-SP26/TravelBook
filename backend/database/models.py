@@ -181,3 +181,12 @@ class Album(SQLModel, table=True):
     trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
     link: Optional[str] = None
     trip: "Trip" = Relationship(back_populates="albums")
+
+################################################
+#
+# Event Models
+#
+################################################
+
+class PaymentIntentRequest(SQLModel):
+    amount: int

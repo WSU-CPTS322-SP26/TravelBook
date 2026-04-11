@@ -10,8 +10,13 @@ import EventProvider from "./context/EventProvider";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import FriendProvider from "./context/FriendProvider";
 import NotificationProvider from "./context/NotificationProvider";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe("pk_test_51TKoEdHc8lUnBcDVmGFbt3bjPiBIBsCayfPaRYOEiLkgSe4Mbj3Qfxww3FrNbUKOoBuf2tpOdmofV2thD61prvjh00y12sobRW")
 
 ReactDOM.createRoot(document.getElementById("root")).render(
+
   <BrowserRouter>
     <AuthProvider>
       <WebSocketProvider>
@@ -20,7 +25,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <TripProvider>
               <MessageProvider>
                 <NotificationProvider>
-                  <App />
+                  <Elements stripe = {stripePromise}>
+                    <App />
+                  </Elements>
                 </NotificationProvider>
               </MessageProvider>
             </TripProvider>
