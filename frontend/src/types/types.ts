@@ -71,3 +71,26 @@ export interface Notification {
   message: string;
   type: 'info' | 'success' | 'error' | 'warning';
 }
+
+export interface Event {
+ id: number | null;
+ name: string;
+ description: string | null;
+ date: string; // ISO 8601
+ location: {
+   name?: string;
+   address?: string;
+   [key: string]: any; // for any additional location details
+ } | null;
+ trip_id: number | null;
+}
+
+// class Event(SQLModel, table=True):
+//     id: Optional[int] = Field(default=None, primary_key=True)
+//     user_id: int = Field(foreign_key="user.id")
+//     name: str
+//     description: Optional[str] = None
+//     trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
+//     date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
+//     location: dict = Field(sa_column=Column(JSON, nullable=False))
+//     trip: "Trip" = Relationship(back_populates="events")
