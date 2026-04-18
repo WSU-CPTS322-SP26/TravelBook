@@ -2,8 +2,8 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useNotifications } from "../context/NotificationContext";
-import { useAuth } from "../context/AuthContext";
-import { useMessage } from "../context/MessageContext";
+import { useAuth } from "../hooks/useAuth";
+import { useMessage } from "../hooks/useMessage";
 import { useChatSocket } from "../hooks/useChatSocket";
 import ChatHeader from "../components/chat/ChatHeader";
 import ChatMessageList from "../components/chat/ChatMessageList";
@@ -15,7 +15,8 @@ export default function ChatPage() {
   const conversationIdNum = Number(conversationId);
   const {user} = useAuth();
   const {getConversation, sendMessage: sendContextMessage, resolveAuthor, getConversationName} = useMessage();
-  const [currentConversation, setCurrentConversation] = useState(null);
+  const conversationQuery = getConversation(conversationIdNum);
+  const currentConversation = conversationQuery.data;
 
   const {
     isConnected,
@@ -61,19 +62,14 @@ export default function ChatPage() {
 
   // Load message history
   useEffect(() => {
-    if (!currentUserId) return;
-    getConversation(conversationIdNum)
-      .then(data => {
-        setCurrentConversation(data);
-        const msgs = Array.isArray(data.messages) ? data.messages : [];
-        setMessages(msgs.map(m => ({
-          ...m,
-          author: resolveAuthor(m, data.users),
-        })));
-        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-      })
-      .catch(err => console.error('Error loading messages:', err));
-  }, [conversationIdNum, currentUserId, resolveAuthor]);
+    if (!currentConversation) return;
+    const msgs = Array.isArray(currentConversation.messages) ? currentConversation.messages : [];
+    setMessages(msgs.map(m => ({
+      ...m,
+      author: resolveAuthor(m, currentConversation.users),
+    })));
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+  }, [currentConversation, resolveAuthor]);
 
   // Subscribe to new messages and polls
   useEffect(() => {

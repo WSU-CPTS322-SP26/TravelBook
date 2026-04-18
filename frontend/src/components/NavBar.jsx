@@ -2,7 +2,7 @@
 // src/components/Navbar.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { useTrip } from "../context/TripContext"  
+import { useTrip } from "../hooks/useTrip"
 
 export default function Navbar({ user, onLogout }) {
   let {activeTrip} = useTrip();

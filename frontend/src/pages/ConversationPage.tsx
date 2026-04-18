@@ -1,23 +1,14 @@
 import { useState, useEffect } from "react";
-import { useMessage } from "../context/MessageContext";
-import { useAuth } from "../context/AuthContext";
+import { useMessage } from "../hooks/useMessage";
+import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Conversation } from "../types/types";
 
 export default function ConversationPage() {
-    const { getConversations } = useMessage();
+    const { conversations } = useMessage();
     const { user } = useAuth();
-    const [conversations, setConversations] = useState<Conversation[]>([]);
 
     let navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchConversations = async () => {
-            const convs = await getConversations();
-            setConversations(convs);
-        };
-        fetchConversations();
-    }, []);
 
     const handleConversationClick = (conversationId: number) => {
         console.log(`Clicked conversation ${conversationId}`);
@@ -47,7 +38,7 @@ export default function ConversationPage() {
         <>
         <div className="page-container conversation-page">
         <ul style={{ listStyle: "none", padding: 0 }}>
-            {conversations.map((conv, index) =>
+            {(conversations || []).map((conv, index) =>
                 <li key={index}
             style={{
               marginBottom: "12px",
