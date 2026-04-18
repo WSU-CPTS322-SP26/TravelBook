@@ -2,8 +2,8 @@
 // src/pages/TripListPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTrip } from "../context/TripContext";
-import { useAuth } from "../context/AuthContext";
+import { useTrip } from "../hooks/useTrip";
+import { useAuth } from "../hooks/useAuth";
 import PlanTripPage from "../components/TripCreation";
 
 export default function TripListPage() {
@@ -11,7 +11,7 @@ export default function TripListPage() {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const navigate = useNavigate();
   const {getTrips, setActiveTrip, deleteTrip} = useTrip();
-  const { token } = useAuth();
+  const { user } = useAuth();
   
  /*
     const newTrip = {
@@ -26,12 +26,12 @@ export default function TripListPage() {
   useEffect(() => {
     // TODO: Add location getting once events are implemented
     const _fetchTrips = async () => {
-      if(!token) { return; }
+      if(!user) { return; }
       const data = await getTrips().then( (data) => {return data.map(trip => ({ ...trip, locations: [] })); } );
       setTrips(data);
     };
     _fetchTrips();
-  }, [token]);
+  }, [user]);
 
 
   // Delete a trip

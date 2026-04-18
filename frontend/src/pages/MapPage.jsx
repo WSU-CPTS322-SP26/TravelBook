@@ -1,7 +1,7 @@
 // src/pages/MapPage.jsx
 import React, { act, useEffect, useRef, useState } from "react";
-import { useEvent } from "../context/EventContext";
-import { useTrip } from "../context/TripContext";
+import { useEvent } from "../hooks/useEvent";
+import { useTrip } from "../hooks/useTrip";
 
 export default function MapPage() {
   const mapRef = useRef(null);

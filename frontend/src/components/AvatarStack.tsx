@@ -1,20 +1,16 @@
-import React, {useState, useEffect} from 'react';
-import { MessageProvider } from '../context/MessageProvider';
-import { useFriend } from '../context/FriendContext';
+import React, {useState, useEffect, useMemo} from 'react';
+import { useFriend } from '../hooks/useFriend';
 
 export default function AvatarStack({userIds}: {userIds: number[]}) {
-    const [userList, setUserList] = useState<string[]>([]);
     const {getUsername} = useFriend();
 
-    useEffect(() => {
-        const fetchUsernames = async () => {
-            const usernames = await Promise.all(
-                userIds.map((id) => getUsername(id))
-            );
-            setUserList(usernames);
-        };
-        fetchUsernames();
-    }, [userIds]);
+    const usernameQueries = useMemo(
+        () => userIds.map((id) => ({ id, query: getUsername(id) })),
+        [userIds, getUsername]
+    );
+
+    const userList = usernameQueries.map(({ query }) => query.data).filter(Boolean) as string[];
+
     return (
     <div className="avatar-stack">
           {userList.map((username, index) => (

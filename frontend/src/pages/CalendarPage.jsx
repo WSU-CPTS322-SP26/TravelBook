@@ -1,6 +1,6 @@
 import React, { act, useEffect, useState } from "react";
-import { useTrip } from "../context/TripContext";
-import { useEvent } from "../context/EventContext";
+import { useTrip } from "../hooks/useTrip";
+import { useEvent } from "../hooks/useEvent";
 
 export default function CalendarPage() {
   const { activeTrip, setTripDate} = useTrip();

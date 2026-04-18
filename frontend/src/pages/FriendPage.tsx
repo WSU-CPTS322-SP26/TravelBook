@@ -1,39 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { useFriend } from "../context/FriendContext";
+import React, { useState } from "react";
+import { useFriend } from "../hooks/useFriend";
 import { SuggestedFriend } from "../types/types";
 import FriendsList from "../components/FriendsList";
 
 export default function FriendPage() {
-  const { friends, getFriends, addFriend, getSuggestedFriends } = useFriend();
-  const [loading, setLoading] = useState(true);
-  const [suggestedFriends, setSuggestedFriends] = useState<SuggestedFriend[]>([]);
+  const { friends, isLoadingFriends, addFriend, getSuggestedFriends } = useFriend();
+  const suggestedQuery = getSuggestedFriends(5);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        await getFriends();
-        // Load initial 5 suggestions
-        const suggestions = await getSuggestedFriends(5);
-        setSuggestedFriends(suggestions);
-        setOffset(5);
-      } catch (error) {
-        console.error("Failed to fetch friends:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFriends();
-  }, []);
+  const [offset, setOffset] = useState(5);
 
   const handleLoadMore = async () => {
     setLoadingMore(true);
     try {
-      // Fetch the next 5 suggestions (but we need to get all then slice)
-      const allSuggestions = await getSuggestedFriends(offset + 5);
-      setSuggestedFriends(allSuggestions);
+      // Fetch next batch of suggestions
+      getSuggestedFriends(offset + 5);
       setOffset(offset + 5);
     } catch (error) {
       console.error("Failed to load more suggestions:", error);
@@ -45,8 +25,6 @@ export default function FriendPage() {
   const handleAddFriend = async (userId: number) => {
     try {
       await addFriend(userId);
-      // Remove from suggested after adding
-      setSuggestedFriends(suggestedFriends.filter(s => s.id !== userId));
     } catch (error) {
       console.error("Failed to add friend:", error);
     }
@@ -58,11 +36,11 @@ export default function FriendPage() {
 
       {/* Friends List Section */}
       <div className="friends-section">
-        <h2>Your Friends ({friends.length})</h2>
+        <h2>Your Friends ({friends?.length || 0})</h2>
 
-        {loading ? (
+        {isLoadingFriends ? (
           <p>Loading friends...</p>
-        ) : friends.length === 0 ? (
+        ) : !friends || friends.length === 0 ? (
           <p>You haven't added any friends yet.</p>
         ) : (
           <FriendsList friends={friends} />
@@ -72,12 +50,14 @@ export default function FriendPage() {
       {/* Suggestions Section */}
       <div className="suggestions-section">
         <h2>Suggested Friends</h2>
-        {suggestedFriends.length === 0 ? (
+        {suggestedQuery.isLoading ? (
+          <p>Loading suggestions...</p>
+        ) : !suggestedQuery.data || suggestedQuery.data.length === 0 ? (
           <p>No suggestions available.</p>
         ) : (
           <>
             <div className="suggestions-list">
-              {suggestedFriends.map((suggestion) => (
+              {suggestedQuery.data.map((suggestion) => (
                 <div key={suggestion.id} className="suggestion-card">
                   <div className="suggestion-info">
                     <h3>{suggestion.name}</h3>
