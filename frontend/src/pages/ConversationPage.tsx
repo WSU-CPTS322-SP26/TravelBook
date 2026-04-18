@@ -27,7 +27,16 @@ export default function ConversationPage() {
 
     const getConversationName = (conv: Conversation): string => {
         if (conv.is_group) {
-            return conv.name ?? `Conversation ${conv.id}`;
+            const explicitName = conv.name?.trim();
+            if (explicitName) return explicitName;
+
+            const participantNames = (conv.users || [])
+                .map((participant) => participant.username?.trim() || `User ${participant.id}`)
+                .filter(Boolean);
+
+            return participantNames.length > 0
+                ? participantNames.join(", ")
+                : `Conversation ${conv.id}`;
         }
         console.log(`current user ${user}`)
         const otherUser = conv.users.find((participant) => participant.id !== user?.id);
