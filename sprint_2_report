@@ -1,0 +1,58 @@
+# Sprint 2 Report (03/01/2026 - 04/04/2026)
+
+## What's New (User Facing)
+ * Standard messaging with text and poll media type
+ * Friends board and request
+ * Improve user flow for trip and event creation
+ * Improve UI style for a more plesant experience
+ * Implement in app notification for messages
+
+## Work Summary (Developer Facing)
+For this sprint, we mostly streamline our data type structures across the frontend and backend. This made possible by switching from javacript code to typescript code for guarantee data access, avoid runtime error for getting data from the backend. 
+We also implement a way to manage "rooms" for websocket on the backend. This allows for multiple conversation being handled rather than only one websoket at a time.
+We go back to our diagram and streamline the app flow of trip and event management
+
+## Unfinished Work
+Some features that was not finish are connecting event creation with google map api. 
+Make suggestions for places that is on the user destination.
+Implement push nofitication for when app is not active
+
+
+## Completed Issues/User Stories
+Here are links to the issues that we completed in this sprint:
+
+ * Websocket chat: https://github.com/WSU-CPTS322-SP26/TravelBook/issues/16
+ * Frontend Chat: https://github.com/WSU-CPTS322-SP26/TravelBook/issues/5
+ * Frontend Login: https://github.com/WSU-CPTS322-SP26/TravelBook/issues/1
+ * Frontend Vote: https://github.com/WSU-CPTS322-SP26/TravelBook/issues/8
+ 
+ ## Incomplete Issues/User Stories
+ Here are links to issues we worked on but did not complete in this sprint:
+ 
+ * Backend Notification: https://github.com/WSU-CPTS322-SP26/TravelBook/issues/13 <<Not enough time>>
+ * Frontend Payment: https://github.com/WSU-CPTS322-SP26/TravelBook/issues/9 <<Not enough time>>
+ * Frontend Event-creation: https://github.com/WSU-CPTS322-SP26/TravelBook/issues/7 <<Not enough time>>
+
+## Code Files for Review
+Please review the following code files, which were actively developed during this sprint, for quality:
+ * backend/messages: https://github.com/WSU-CPTS322-SP26/TravelBook/tree/main/backend/messages
+ * frontend/src/context/WebSocketContext: https://github.com/WSU-CPTS322-SP26/TravelBook/blob/main/frontend/src/context/WebSocketContext.tsx
+ * frontend/src/page/ChatPage: https://github.com/WSU-CPTS322-SP26/TravelBook/blob/main/frontend/src/pages/ChatPage.jsx
+ 
+## Retrospective Summary
+Here's what went well:
+  * Websocket implementation
+  * Trip creation
+  * Event creation
+ 
+Here's what we'd like to improve:
+   * Link map to events
+   * Push notification on messages
+  
+Here are changes we plan to implement in the next sprint:
+   * All things in improve section
+   * Dockerfile to deployment
+   * Suggesting system for maps
+
+Demo video link
+https://youtu.be/iBk3rud-mTg
