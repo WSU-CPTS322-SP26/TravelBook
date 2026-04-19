@@ -11,9 +11,8 @@ export const WS_EVENTS = {
   
   // Incoming (server → client)
   NEW_MESSAGE: 'new_message',
-  PLACE_ADDED: 'place_added',
-  PLACE_REMOVED: 'place_removed',
-  PLACE_UPDATED: 'place_updated',
+  ADD_POLL: 'add_poll',
+  UPDATE_VOTE: 'update_vote',
   USER_TYPING: 'user_typing',
   USER_JOINED: 'user_joined',
   USER_LEFT: 'user_left',

@@ -1,12 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --navy:       #0D1B2A;
@@ -21,9 +15,9 @@
   --cream-dim:  #B8BFCA;
   --muted:      #7B8FA6;
   --danger:     #E05252;
-  --border:     rgba(255, 255, 255, 0.07);
-  --border-mid: rgba(255, 255, 255, 0.13);
-  --glass:      rgba(22, 32, 50, 0.88);
+  --border:     rgba(255,255,255,0.07);
+  --border-mid: rgba(255,255,255,0.13);
+  --glass:      rgba(22,32,50,0.88);
   --shadow-sm:  0 2px 12px rgba(0,0,0,0.3);
   --shadow-md:  0 8px 32px rgba(0,0,0,0.4);
   --shadow-lg:  0 20px 60px rgba(0,0,0,0.55);
@@ -33,19 +27,16 @@
   --radius-xl:  clamp(20px, 1.8vw, 32px);
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body:    'DM Sans', system-ui, sans-serif;
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease: cubic-bezier(0.4,0,0.2,1);
   --t:    0.22s;
-
-  /* Fluid spacing scale — used as padding/gap/margin throughout */
-  --space-xs:  clamp(0.3rem,  0.5vw,  0.6rem);
-  --space-sm:  clamp(0.5rem,  0.8vw,  1rem);
-  --space-md:  clamp(0.8rem,  1.2vw,  1.5rem);
-  --space-lg:  clamp(1.2rem,  2vw,    2.5rem);
-  --space-xl:  clamp(1.8rem,  3vw,    4rem);
+  --space-xs: clamp(0.3rem,  0.5vw,  0.6rem);
+  --space-sm: clamp(0.5rem,  0.8vw,  1rem);
+  --space-md: clamp(0.8rem,  1.2vw,  1.5rem);
+  --space-lg: clamp(1.2rem,  2vw,    2.5rem);
+  --space-xl: clamp(1.8rem,  3vw,    4rem);
 }
 
 html {
-  /* Fluid base: 15px on small screens, scales to ~1.1vw, caps at 18px on huge screens */
   font-size: clamp(15px, 1.1vw, 18px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -59,19 +50,9 @@ body {
   line-height: 1.65;
 }
 
-a {
-  color: var(--amber);
-  text-decoration: none;
-  transition: color var(--t) var(--ease);
-}
+a { color: var(--amber); text-decoration: none; transition: color var(--t) var(--ease); }
 a:hover { color: var(--amber-dim); }
-
-h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.2;
-}
-
+h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.2; }
 button { font-family: var(--font-body); cursor: pointer; }
 input, select, textarea { font-family: var(--font-body); }
 

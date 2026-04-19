@@ -12,12 +12,23 @@ router = APIRouter(tags=["auth"])
 
 @router.post("/register")
 def register_user(user: UserCreate, db: Session = Depends(get_session)):
-    db_user = get_user(db, user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="User already exists")
+    # Check if user with email or username already exists
+    existing_user = get_user(db, user.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    from sqlmodel import select
+    username_exists = db.exec(select(User).where(User.username == user.username)).first()
+    if username_exists:
+        raise HTTPException(status_code=400, detail="Username already taken")
     
     hashed_password = get_password_hash(user.password)
-    db_user = User.model_validate(user, update={"hashed_password": hashed_password})
+    db_user = User(
+        username=user.username,
+        email=user.email,
+        name=user.name,
+        hashed_password=hashed_password
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

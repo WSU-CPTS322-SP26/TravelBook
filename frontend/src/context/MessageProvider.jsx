@@ -25,8 +25,13 @@ export function MessageProvider({children}){
         let res = await api.get(`/messages/conversations/${conversationId}`);
         return res.data;
     }
+
+    const addConversationParticipant = async (conversationId, userId) => {
+        let res = await api.post(`/messages/conversations/${conversationId}/participants/${userId}`);
+        return res.data;
+    }
     return (
-        <MessageContext.Provider value={{activeConversation, setActiveConversation, createConversation, sendMessage, getConversation, getConversations}}>
+        <MessageContext.Provider value={{activeConversation, setActiveConversation, createConversation, sendMessage, getConversation, getConversations, addConversationParticipant}}>
           {children}
         </MessageContext.Provider>
     );
