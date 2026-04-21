@@ -1,140 +1,175 @@
-import React, { act, useEffect, useState } from "react";
-import { useTrip } from "../hooks/useTrip";
-import { useEvent } from "../hooks/useEvent";
+import React, { useState, useCallback, useMemo } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import api from "../api";
+import format from 'date-fns/format'
+import parse from 'date-fns/parse'
+import startOfWeek from 'date-fns/startOfWeek'
+import getDay from 'date-fns/getDay'
+import enUS from 'date-fns/locale/en-US'
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 
 export default function CalendarPage() {
-  const { activeTrip, setTripDate} = useTrip();
-  const { getEventsByTrip, updateEvent } = useEvent();
+  const { user } = useAuth();
 
-  const [events, setEvents] = useState([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [days, setDays] = useState([]);
-  const [itinerary, setItinerary] = useState({});
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+  const [allEvents, setAllEvents] = useState([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
-  useEffect(() => {
-  if (!activeTrip) return;
-  if(activeTrip.start_date && activeTrip.end_date){
-    setStartDate(activeTrip.start_date.split("T")[0]);
-    setEndDate(activeTrip.end_date.split("T")[0]);
+  const locales = {
+    'en-US': enUS
   }
-}, [activeTrip?.id]);
+  const localizer = dateFnsLocalizer({
+    format,
+    parse,
+    startOfWeek,
+    getDay,
+    locales
+  });
 
-  useEffect(() => {
+  // Convert backend events to react-big-calendar format
+  const formattedEvents = useMemo(() => {
+    return allEvents.map(event => ({
+      ...event,
+      start: new Date(event.start),
+      end: new Date(event.end)
+    }));
+  }, [allEvents]);
 
-    if (!activeTrip) return;
-    getEventsByTrip(activeTrip.id).then((data) => {
-      setEvents(data)
-      const pre = {};
-      data.forEach(event => {
-        if (!event.date || !startDate || !endDate) return;
-        const eventDate = new Date(event.date);
-        days.forEach((day, index) => {
-          if (day.toDateString() === eventDate.toDateString()) {
-            pre[index] = event.name;
-          }
-        });
-      });
-      setItinerary(pre)
+  // Fetch all events for the current user
+  const fetchAllEvents = useCallback(async () => {
+    if (!user) return;
+
+    setIsLoadingEvents(true);
+    try {
+      // Fetch all trips first
+      const tripsRes = await api.get("/trips/getTrips");
+      const trips = tripsRes.data;
+
+      // Fetch events for all trips
+      const allEventsData = [];
+      for (const trip of trips) {
+        try {
+          const eventsRes = await api.get(`/events/by-trip/${trip.id}`);
+          allEventsData.push(...eventsRes.data);
+        } catch (error) {
+          console.error(`Error fetching events for trip ${trip.id}:`, error);
+        }
+      }
+
+      setAllEvents(allEventsData);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  }, [user]);
+
+  // Fetch events on component mount and user change
+  React.useEffect(() => {
+    fetchAllEvents();
+  }, [fetchAllEvents]);
+
+  // Auto-refresh events every 30 seconds
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      fetchAllEvents();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [fetchAllEvents]);
+
+  // Handle date click to show events for that day
+  const handleSelectSlot = (slotInfo) => {
+    setSelectedDate(slotInfo.start);
+    const dateStr = slotInfo.start.toISOString().split('T')[0];
+    const dayEvents = allEvents.filter(event => {
+      const eventDate = new Date(event.start).toISOString().split('T')[0];
+      return eventDate === dateStr;
     });
-  }, [activeTrip]);
-
-  // generate days when date range changes
-  useEffect(() => {
-    if (!startDate || !endDate) return;
-    const start = new Date(startDate);
-    start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
-    const end = new Date(endDate);
-    end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
-    setTripDate(activeTrip.id, start, end)
-    const dayList = [];
-    let current = new Date(start);
-    while (current <= end) {
-      dayList.push(new Date(current));
-      current.setDate(current.getDate() + 1);
-    }
-    setDays(dayList);
-  }, [startDate, endDate]);
-
-  async function assignEvent(dayIndex, eventName) {
-    if(Object.entries(itinerary).find( ([i, name]) => name==eventName ) && eventName!="") {
-      alert(`${eventName} already belongs to a day!`);
-      return;
-    }
-    setItinerary((prev) => ({ ...prev, [dayIndex]: eventName }));
-    const event = events.find( (event) => event.name==eventName );
-    const day = days[dayIndex]
-    if(!event) return;
-
-    await updateEvent( event.id, event.name, event.description, event.trip_id, day.toISOString(), event.location);
-  }
+    setSelectedDateEvents(dayEvents);
+  };
 
   return (
     <div className="page-container">
-      <h2>Trip Calendar</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">Calendar</h2>
+        {user && (
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={fetchAllEvents}
+            disabled={isLoadingEvents}
+          >
+            {isLoadingEvents ? "Refreshing..." : "Refresh"}
+          </button>
+        )}
+      </div>
 
-      {!activeTrip ? (
-        <p>No active trip selected. Go to <strong>Trips</strong> and set one as active!</p>
+      {!user ? (
+        <div className="alert alert-info" role="alert">
+          <strong>Please log in</strong> to view the calendar.
+        </div>
       ) : (
         <>
-          <h3>Active Trip: {activeTrip.name}</h3>
+          {/* Calendar Component */}
+          {isLoadingEvents && (
+            <div className="alert alert-warning">Loading events...</div>
+          )}
 
-          <label>Start Date</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            style={{ width: "100%", padding: "10px", marginBottom: "12px", borderRadius: "8px" }}
+          <Calendar
+            defaultView='month'
+            events={formattedEvents}
+            localizer={localizer}
+            startAccessor="start"
+            endAccessor="end"
+            onSelectSlot={handleSelectSlot}
+            selectable
+            style={{ height: 500 }}
           />
 
-          <label>End Date</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            style={{ width: "100%", padding: "10px", marginBottom: "12px", borderRadius: "8px" }}
-          />
-
-          {days.length > 0 && (
-            <div style={{ marginTop: "20px" }}>
-              <h3>Assign Events to Each Day</h3>
-
-              {days.map((day, index) => (
-                <div
-                  key={index}
-                  style={{
-                    padding: "12px",
-                    marginBottom: "10px",
-                    background: "rgba(255,255,255,0.05)",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                  }}
-                >
-                  <strong>Day {index + 1} — {day.toDateString()}</strong>
-
-                  <select
-                    value={itinerary[index] || ""}
-                    onChange={(e) => assignEvent(index, e.target.value)}
-                    style={{ width: "100%", padding: "10px", marginTop: "8px", borderRadius: "8px" }}
-                  >
-                    <option value="">Select an event...</option>
-                    {events.map((event, i) => (
-                      <option key={i} value={event.name}>
-                        {event.name}
-                      </option>
+          {/* Events Display Box */}
+          {selectedDate && (
+            <div className="card mt-4 shadow">
+              <div className="card-header bg-info text-white">
+                <h5 className="mb-0">
+                  Events on {format(selectedDate, 'MMMM d, yyyy')}
+                </h5>
+              </div>
+              <div className="card-body">
+                {selectedDateEvents.length === 0 ? (
+                  <p className="text-muted mb-0">No events scheduled for this date.</p>
+                ) : (
+                  <div>
+                    {selectedDateEvents.map((event) => (
+                      <div
+                        key={event.id}
+                        className="alert alert-primary mb-3"
+                        role="alert"
+                      >
+                        <h6 className="alert-heading mb-2">{event.title}</h6>
+                        {event.description && (
+                          <p className="mb-2">
+                            <strong>Description:</strong> {event.description}
+                          </p>
+                        )}
+                        {event.start && (
+                          <p className="mb-0">
+                            <strong>Time:</strong> {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                          </p>
+                        )}
+                        {event.location?.name && (
+                          <p className="mb-0">
+                            <strong>Location:</strong> {event.location.name}
+                            {event.location.address && ` - ${event.location.address}`}
+                          </p>
+                        )}
+                      </div>
                     ))}
-                  </select>
-                </div>
-              ))}
-              <p style={{
-                color: "rgba(255,255,255,0.35)",
-                fontSize: "0.85em",
-                borderBottom: "1px solid rgba(255,255,255,0.15)",
-                paddingBottom: "-5px",
-                display: "inline-block",
-              }}>
-                Automatically Saves
-              </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </>
