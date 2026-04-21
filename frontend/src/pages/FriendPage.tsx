@@ -4,8 +4,9 @@ import { SuggestedFriend } from "../types/types";
 import FriendsList from "../components/FriendsList";
 
 export default function FriendPage() {
-  const { friends, isLoadingFriends, addFriend, getSuggestedFriends } = useFriend();
-  const suggestedQuery = getSuggestedFriends(5);
+  const { friends = [], isLoadingFriends, addFriend, getSuggestedFriends } = useFriend();
+  const suggestedFriendsQuery = getSuggestedFriends(5);
+  const suggestedFriends = suggestedFriendsQuery?.data || [];
   const [loadingMore, setLoadingMore] = useState(false);
   const [offset, setOffset] = useState(5);
 
@@ -15,11 +16,8 @@ export default function FriendPage() {
       // Fetch next batch of suggestions
       getSuggestedFriends(offset + 5);
       setOffset(offset + 5);
-    } catch (error) {
-      console.error("Failed to load more suggestions:", error);
-    } finally {
-      setLoadingMore(false);
-    }
+    } catch {}
+    finally { setLoadingMore(false); }
   };
 
   const handleAddFriend = async (userId: number) => {
@@ -32,64 +30,43 @@ export default function FriendPage() {
 
   return (
     <div className="page-container">
-      <h1>Friends</h1>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Friends</h1>
+          <p className="page-subtitle">{friends.length} friend{friends.length !== 1 ? "s" : ""}</p>
+        </div>
+      </div>
 
-      {/* Friends List Section */}
       <div className="friends-section">
-        <h2>Your Friends ({friends?.length || 0})</h2>
-
+        <p className="section-label">Your Friends</p>
         {isLoadingFriends ? (
-          <p>Loading friends...</p>
-        ) : !friends || friends.length === 0 ? (
-          <p>You haven't added any friends yet.</p>
+          <div><div className="skeleton skeleton-line full" /><div className="skeleton skeleton-line medium" /></div>
+        ) : friends.length === 0 ? (
+          <div className="empty-state card"><div className="empty-state-icon">👥</div><p>No friends yet.<br />Add some from the suggestions below!</p></div>
         ) : (
           <FriendsList friends={friends} />
         )}
       </div>
 
-      {/* Suggestions Section */}
       <div className="suggestions-section">
-        <h2>Suggested Friends</h2>
-        {suggestedQuery.isLoading ? (
-          <p>Loading suggestions...</p>
-        ) : !suggestedQuery.data || suggestedQuery.data.length === 0 ? (
-          <p>No suggestions available.</p>
+        <p className="section-label">Suggested Friends</p>
+        {suggestedFriends.length === 0 ? (
+          <p className="text-muted" style={{ fontSize: "0.9rem" }}>No suggestions available.</p>
         ) : (
           <>
             <div className="suggestions-list">
-              {suggestedQuery.data.map((suggestion) => (
-                <div key={suggestion.id} className="suggestion-card">
+              {suggestedFriends.map((s) => (
+                <div key={s.id} className="suggestion-card">
                   <div className="suggestion-info">
-                    <h3>{suggestion.name}</h3>
-                    <p className="suggestion-meta">{suggestion.mutual} mutual friends</p>
+                    <h3>{s.name}</h3>
+                    <p className="suggestion-meta">{s.mutual} mutual friend{s.mutual !== 1 ? "s" : ""}</p>
                   </div>
-                  <button
-                    onClick={() => handleAddFriend(suggestion.id)}
-                    className="btn-primary"
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    Add
-                  </button>
+                  <button className="btn-teal" onClick={() => handleAddFriend(s.id)}>+ Add</button>
                 </div>
               ))}
             </div>
-            <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              className="btn-secondary"
-              style={{
-                marginTop: "16px",
-                padding: "10px 16px",
-                borderRadius: "6px",
-                cursor: loadingMore ? "not-allowed" : "pointer",
-                opacity: loadingMore ? 0.6 : 1,
-              }}
-            >
-              {loadingMore ? "Loading..." : "Load More"}
+            <button className="btn-secondary mt-3" onClick={handleLoadMore} disabled={loadingMore} style={{ opacity: loadingMore ? 0.6 : 1 }}>
+              {loadingMore ? "Loading…" : "Load More"}
             </button>
           </>
         )}

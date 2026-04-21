@@ -92,6 +92,18 @@ export default function CalendarPage() {
     setSelectedDateEvents(dayEvents);
   };
 
+  const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+  if (!activeTrip) return (
+    <div className="page-container">
+      <div className="card" style={{ textAlign:"center", padding:"4rem 2rem" }}>
+        <div style={{ fontSize:"3rem", marginBottom:"1rem", opacity:0.4 }}>📅</div>
+        <h3 style={{ marginBottom:"0.5rem" }}>No active trip</h3>
+        <p className="text-muted">Go to <strong style={{ color:"var(--amber)" }}>Trips</strong> and set one as active to build your calendar.</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="page-container">
       <div className="d-flex justify-content-between align-items-center mb-4">

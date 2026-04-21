@@ -1,69 +1,62 @@
 /*Generative AI was utilized to generate this code*/
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --navy:       #0D1B2A;
+  --navy-mid:   #162032;
+  --navy-card:  #1A2A3F;
+  --navy-light: #213550;
+  --amber:      #F4A261;
+  --amber-dim:  #c97d44;
+  --teal:       #2A9D8F;
+  --teal-dim:   #207A6E;
+  --cream:      #F0EAE0;
+  --cream-dim:  #B8BFCA;
+  --muted:      #7B8FA6;
+  --danger:     #E05252;
+  --border:     rgba(255,255,255,0.07);
+  --border-mid: rgba(255,255,255,0.13);
+  --glass:      rgba(22,32,50,0.88);
+  --shadow-sm:  0 2px 12px rgba(0,0,0,0.3);
+  --shadow-md:  0 8px 32px rgba(0,0,0,0.4);
+  --shadow-lg:  0 20px 60px rgba(0,0,0,0.55);
+  --radius-sm:  clamp(6px,  0.5vw, 10px);
+  --radius-md:  clamp(10px, 0.9vw, 16px);
+  --radius-lg:  clamp(14px, 1.2vw, 22px);
+  --radius-xl:  clamp(20px, 1.8vw, 32px);
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --ease: cubic-bezier(0.4,0,0.2,1);
+  --t:    0.22s;
+  --space-xs: clamp(0.3rem,  0.5vw,  0.6rem);
+  --space-sm: clamp(0.5rem,  0.8vw,  1rem);
+  --space-md: clamp(0.8rem,  1.2vw,  1.5rem);
+  --space-lg: clamp(1.2rem,  2vw,    2.5rem);
+  --space-xl: clamp(1.8rem,  3vw,    4rem);
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+html {
+  font-size: clamp(15px, 1.1vw, 18px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  font-family: var(--font-body);
+  background: var(--navy);
+  color: var(--cream);
   min-height: 100vh;
+  line-height: 1.65;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+a { color: var(--amber); text-decoration: none; transition: color var(--t) var(--ease); }
+a:hover { color: var(--amber-dim); }
+h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.2; }
+button { font-family: var(--font-body); cursor: pointer; }
+input, select, textarea { font-family: var(--font-body); }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 4px; }

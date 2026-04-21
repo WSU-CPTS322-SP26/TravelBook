@@ -1,3 +1,4 @@
+// Generative AI was used to devlop this code
 // src/pages/ChatPage.jsx
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
@@ -39,7 +40,7 @@ export default function ChatPage() {
   const typingTimeoutRef = useRef(null);
   const currentUserId = user?.id;
 
-  const { setActiveConversation} = useNotifications();
+  const { setActiveConversation } = useNotifications();
 
   const typingUsers = useTypingUsers(conversationIdNum);
 
@@ -117,23 +118,26 @@ export default function ChatPage() {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     sendTextMessage(conversationIdNum, text);
     sendContextMessage(text, conversationIdNum, user.id);
-    setInputMessage('');
+    setInputMessage("");
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   };
 
-  // Handle media options
-  const handleAddMedia = (mediaType) => {
-    if (mediaType === 'poll') {
-      setShowPollCreation(true);
-      setShowMediaOptions(false);
-    } else {
-      console.log(`Adding ${mediaType} media`);
-      // TODO: Implement media upload functionality
-      setShowMediaOptions(false);
-    }
+  const handleInputChange = (e) => {
+    setInputMessage(e.target.value);
+    if (isConnected) sendTyping(conversationIdNum);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {}, 3000);
   };
 
-  // Handle poll creation
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
+
+  const handleAddMedia = (mediaType) => {
+    if (mediaType === "poll") { setShowPollCreation(true); }
+    setShowMediaOptions(false);
+  };
+
   const handlePollCreate = (poll) => {
     const pollContent = poll.content;
     const pollMetaData = poll.meta_data;
@@ -145,33 +149,33 @@ export default function ChatPage() {
     setShowPollCreation(false);
   };
 
-  // Handle input change
-  const handleInputChange = (e) => {
-    setInputMessage(e.target.value);
+  // // Handle input change
+  // const handleInputChange = (e) => {
+  //   setInputMessage(e.target.value);
     
-    // Send typing indicator
-    if (isConnected) {
-      sendTypingIndicator(conversationIdNum);
-    }
+  //   // Send typing indicator
+  //   if (isConnected) {
+  //     sendTypingIndicator(conversationIdNum);
+  //   }
     
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
+  //   // Clear existing timeout
+  //   if (typingTimeoutRef.current) {
+  //     clearTimeout(typingTimeoutRef.current);
+  //   }
     
-    // Set new timeout to stop typing indicator after 3 seconds
-    typingTimeoutRef.current = setTimeout(() => {
-      // Could send "stopped typing" event if needed
-    }, 3000);
-  };
+  //   // Set new timeout to stop typing indicator after 3 seconds
+  //   typingTimeoutRef.current = setTimeout(() => {
+  //     // Could send "stopped typing" event if needed
+  //   }, 3000);
+  // };
 
-  // Handle Enter key to send message
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  // // Handle Enter key to send message
+  // const handleKeyDown = (e) => {
+  //   if (e.key === 'Enter' && !e.shiftKey) {
+  //     e.preventDefault();
+  //     handleSend();
+  //   }
+  // };
 
   const handleVote = (pollMessage, selectedOption) => {
     // Build updated meta_data with the vote
@@ -238,4 +242,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
