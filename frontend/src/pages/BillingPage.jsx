@@ -1,24 +1,28 @@
 import React, { useState } from "react";
 import CheckoutForm from "../components/CheckoutForm";
+import { useBilling } from "../context/BillingContext";
 
 const plans = [
   {
-    name: "Starter",
+    name: "Voyager",
+    tier: 0,
     price: 0,
     description: "Perfect for solo travelers",
-    features: ["1 active trip", "Up to 5 events", "Basic map access", "Group chat"],
+    features: ["Basic app access"],
   },
   {
-    name: "Explorer",
+    name: "Pathfinder",
+    tier: 1,
     price: 9,
     description: "For the frequent traveler",
-    features: ["Unlimited trips", "Unlimited events", "Full map access", "Group chat", "Calendar planning", "Priority support"],
+    features: ["Access to the map", "Increased storage limits"],
   },
   {
-    name: "Voyager",
+    name: "Pioneer",
+    tier: 2,
     price: 24,
     description: "For travel squads",
-    features: ["Everything in Explorer", "Up to 10 collaborators", "Shared itineraries", "Export to PDF", "Dedicated support"],
+    features: ["Everything in the previous tiers", "Further increased storage limits"],
   },
 ];
 function PaymentModal({ onClose, amount}) {
@@ -37,15 +41,27 @@ function PaymentModal({ onClose, amount}) {
 }
 
 export default function BillingPage() {
+    const {subscription, deleteSubscription, updateSubscription, createSubscription} = useBilling();
     const [billing, setBilling] = useState("monthly");
     const [showPayment, setShowPayment] = useState(false);
-    const [currentPlan, setCurrentPlan] = useState(plans[0]); // once billing routes exist, this should go in the context
+    const currentDate = new Date().toISOString();
 
-    const isCurrentPlan = (plan) => { return plan.name===currentPlan.name };
+    const isCurrentPlan = (plan) => { return subscription && plan.tier===subscription.tier };
 
+    const getNextBillingDate = (subscription) => {
+        if (!subscription) return "N/A";
+        const start = new Date(subscription.start_date);
+        const next = new Date(start);
+        if (subscription.monthly) {
+            next.setMonth(next.getMonth() + 1);
+        } else {
+            next.setFullYear(next.getFullYear() + 1);
+        }
+            return next.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    };
     return (
         <div className="page-container">
-        {showPayment && <PaymentModal onClose={() => setShowPayment(false)} amount={currentPlan.price * 100}/>}
+        {showPayment && <PaymentModal onClose={() => setShowPayment(false)} amount={subscription && subscription.price * 100}/>}
         <div className="billing-container">
             <h1 className="billing-heading">Choose your plan</h1>
 
@@ -84,8 +100,10 @@ export default function BillingPage() {
                         </li>
                     ))}
                     </ul>
-                    <button className={(isCurrentPlan(plan))?"plan-btn active":"plan-btn" } onClick={()=>{setCurrentPlan(plan)}}>
-                    {isCurrentPlan(plan) ? "Manage Plan" : "Get Started"}
+                    <button className={(isCurrentPlan(plan))?"plan-btn active":"plan-btn" } onClick={()=>{updateSubscription( 
+                        { tier: plan.tier, monthly:(billing==="monthly"), price: Math.round(plan.price * 100), start_date:currentDate} 
+                        )}}>
+                    {isCurrentPlan(plan) ? "Current Plan" : "Get Started"}
                     </button>
                 </div>
                 );
@@ -96,15 +114,16 @@ export default function BillingPage() {
             <h3 className="billing-title">Billing Details</h3>
             <div className="billing-row">
                 <span className="billing-label">Current plan</span>
-                <span className="billing-value">{ (currentPlan.name && billing) ? currentPlan.name + " - " + billing.replace(/^./, c=>c.toUpperCase()) : "No plan selected"}</span>
+                <span className="billing-value">{ (subscription) ? plans[subscription.tier].name + " - " + (subscription.monthly?"Monthly":"Yearly") : "No plan selected"}</span>
             </div>
             <div className="billing-row">
-                <span className="billing-label">Next billing date</span>
-                <span className="billing-value">May 4, 2026</span>
+                    <span className="billing-label">Next billing date</span>
+                    <span className="billing-value">{getNextBillingDate(subscription)}</span>
             </div>
             <div className="billing-actions">
-                <button className="btn-secondary" style={{borderRadius:"8px"}} onClick={() => setShowPayment(true)}>Update Payment</button>
-                <button className="btn-danger" onClick={()=>{setCurrentPlan({});}}>Cancel Subscription</button>
+                <button className="btn-secondary" style={{borderRadius:"8px"}} onClick={() => setShowPayment(true)}>Make Payment</button>
+                <button className="btn-danger" onClick={ () => {
+                    if(window.confirm("Are you sure you want to cancel your subscription?")) deleteSubscription() }} >Cancel Subscription</button>
             </div>
             </div>
         </div>

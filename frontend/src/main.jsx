@@ -10,6 +10,7 @@ import EventProvider from "./context/EventProvider";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import FriendProvider from "./context/FriendProvider";
 import NotificationProvider from "./context/NotificationProvider";
+import BillingProvider from "./context/BillingProvider";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -25,9 +26,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <TripProvider>
               <MessageProvider>
                 <NotificationProvider>
-                  <Elements stripe = {stripePromise}>
-                    <App />
-                  </Elements>
+                  <BillingProvider>
+                    <Elements stripe = {stripePromise}>
+                      <App />
+                    </Elements>
+                  </BillingProvider>
                 </NotificationProvider>
               </MessageProvider>
             </TripProvider>
