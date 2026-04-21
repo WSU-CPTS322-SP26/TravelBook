@@ -145,33 +145,33 @@ export default function ChatPage() {
     setShowPollCreation(false);
   };
 
-  // Handle input change
-  const handleInputChange = (e) => {
-    setInputMessage(e.target.value);
+  // // Handle input change
+  // const handleInputChange = (e) => {
+  //   setInputMessage(e.target.value);
     
-    // Send typing indicator
-    if (isConnected) {
-      sendTypingIndicator(conversationIdNum);
-    }
+  //   // Send typing indicator
+  //   if (isConnected) {
+  //     sendTypingIndicator(conversationIdNum);
+  //   }
     
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
+  //   // Clear existing timeout
+  //   if (typingTimeoutRef.current) {
+  //     clearTimeout(typingTimeoutRef.current);
+  //   }
     
-    // Set new timeout to stop typing indicator after 3 seconds
-    typingTimeoutRef.current = setTimeout(() => {
-      // Could send "stopped typing" event if needed
-    }, 3000);
-  };
+  //   // Set new timeout to stop typing indicator after 3 seconds
+  //   typingTimeoutRef.current = setTimeout(() => {
+  //     // Could send "stopped typing" event if needed
+  //   }, 3000);
+  // };
 
-  // Handle Enter key to send message
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  // // Handle Enter key to send message
+  // const handleKeyDown = (e) => {
+  //   if (e.key === 'Enter' && !e.shiftKey) {
+  //     e.preventDefault();
+  //     handleSend();
+  //   }
+  // };
 
   const handleVote = (pollMessage, selectedOption) => {
     // Build updated meta_data with the vote

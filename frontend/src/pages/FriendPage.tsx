@@ -15,8 +15,11 @@ export default function FriendPage() {
       // Fetch next batch of suggestions
       getSuggestedFriends(offset + 5);
       setOffset(offset + 5);
-    } catch {}
-    finally { setLoadingMore(false); }
+    } catch (error) {
+      console.error("Failed to load more suggestions:", error);
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   const handleAddFriend = async (userId: number) => {
@@ -27,7 +30,7 @@ export default function FriendPage() {
     }
   };
 
-    return (
+  return (
     <div className="page-container">
       <h1>Friends</h1>
 
