@@ -15,7 +15,7 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 engine = create_engine(DATABASE_URL, echo=False)
 
 # Check if we should reseed the database (default is True)
-reseed_database = os.getenv("RESEED_DATABASE", "true").lower() == "false"
+reseed_database = os.getenv("RESEED_DATABASE", "true").lower() == "true"
 
 if reseed_database:
     print("Reseeding database: Dropping and recreating tables...")

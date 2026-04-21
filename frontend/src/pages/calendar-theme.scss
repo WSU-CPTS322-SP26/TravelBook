@@ -1,0 +1,342 @@
+// Import the base react-big-calendar styles
+@import 'react-big-calendar/lib/sass/styles.scss';
+
+// ─── Calendar Theme Variables ─── //
+$navy: #0D1B2A;
+$navy-mid: #162032;
+$navy-card: #1A2A3F;
+$navy-light: #213550;
+$amber: #F4A261;
+$amber-dim: #c97d44;
+$teal: #2A9D8F;
+$teal-dim: #207A6E;
+$cream: #F0EAE0;
+$cream-dim: #B8BFCA;
+$muted: #7B8FA6;
+$border: rgba(255, 255, 255, 0.07);
+$border-mid: rgba(255, 255, 255, 0.13);
+$glass: rgba(22, 32, 50, 0.88);
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$t: 0.22s;
+$ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+// ─── Calendar Component Overrides ─── //
+.rbc-calendar {
+  background: transparent;
+  color: $cream;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+// Header styling
+.rbc-header {
+  background: transparent;
+  color: $muted;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid $border-mid;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// Month view
+.rbc-month-view {
+  background: transparent;
+  border: none;
+}
+
+.rbc-month-row {
+  border-top: 1px solid $border-mid;
+  min-height: 120px;
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+.rbc-date-cell {
+  padding: 0.5rem 0.3rem;
+  border-right: 1px solid $border-mid;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  > a {
+    color: $cream;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: $radius-sm;
+    transition: all $t $ease;
+
+    &:hover {
+      color: $amber;
+      background: rgba(244, 162, 97, 0.1);
+    }
+  }
+}
+
+.rbc-off-range-bg {
+  background: transparent;
+}
+
+.rbc-off-range {
+  color: $muted;
+
+  a {
+    color: $muted;
+  }
+}
+
+.rbc-today {
+  background: rgba(244, 162, 97, 0.08);
+
+  .rbc-date-cell > a {
+    color: $amber;
+    font-weight: 600;
+  }
+}
+
+.rbc-selected {
+  background: rgba(244, 162, 97, 0.15);
+}
+
+// Day view cells
+.rbc-time-slot {
+  background: transparent;
+  border-right: 1px solid $border-mid;
+}
+
+.rbc-time-content {
+  border-top: 1px solid $border-mid;
+}
+
+.rbc-current-time-indicator {
+  background: $amber;
+  height: 2px;
+  pointer-events: none;
+}
+
+// Toolbar styling
+.rbc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  background: transparent;
+
+  button {
+    background: transparent;
+    color: $cream-dim;
+    border: 1px solid $border-mid;
+    border-radius: $radius-sm;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all $t $ease;
+    cursor: pointer;
+    font-family: 'DM Sans', system-ui, sans-serif;
+
+    &:hover {
+      background: $border;
+      color: $cream;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    &.rbc-active {
+      background: $amber;
+      color: $navy;
+      border-color: $amber;
+      font-weight: 600;
+
+      &:hover {
+        background: $amber-dim;
+      }
+    }
+  }
+}
+
+.rbc-toolbar-label {
+  color: $cream;
+  font-weight: 600;
+  font-size: 1.1rem;
+  flex: 1;
+  text-align: center;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+// Event styling
+.rbc-event {
+  background: rgba(244, 162, 97, 0.6);
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: $radius-sm;
+  transition: all $t $ease;
+
+  &:hover {
+    background: rgba(244, 162, 97, 0.8);
+    box-shadow: 0 2px 8px rgba(244, 162, 97, 0.3);
+  }
+
+  &.rbc-selected {
+    background: $amber;
+    color: $navy;
+  }
+
+  &.rbc-selected:hover {
+    background: $amber-dim;
+  }
+
+  .rbc-event-label {
+    font-size: 0.8rem;
+    color: $navy;
+    font-weight: 600;
+  }
+
+  .rbc-event-content {
+    font-size: 0.85rem;
+    color: $navy;
+    font-weight: 500;
+    padding: 0.1rem 0;
+  }
+}
+
+.rbc-event-label {
+  font-size: 0.75rem;
+  color: $muted;
+}
+
+// Overlay/popup styling
+.rbc-overlay {
+  background: $navy-card;
+  border: 1px solid $border-mid;
+  border-radius: $radius-md;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+.rbc-overlay-header {
+  background: transparent;
+  border-bottom: 1px solid $border-mid;
+  color: $cream;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+
+// Slot selection
+.rbc-slot-selection {
+  background: rgba(244, 162, 97, 0.15);
+}
+
+// Show more link
+.rbc-show-more {
+  color: $amber;
+  font-weight: 500;
+  background: transparent;
+  cursor: pointer;
+  transition: all $t $ease;
+
+  &:hover {
+    color: $amber-dim;
+    text-decoration: underline;
+  }
+}
+
+// Agenda view
+.rbc-agenda-view {
+  background: transparent;
+  border: 1px solid $border-mid;
+  border-radius: $radius-lg;
+  color: $cream;
+
+  table {
+    border-collapse: collapse;
+
+    tbody > tr {
+      border-top: 1px solid $border-mid;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      > td {
+        padding: 0.75rem;
+        vertical-align: top;
+      }
+    }
+
+    thead > tr {
+      border-bottom: 1px solid $border-mid;
+
+      th {
+        background: transparent;
+        color: $muted;
+        font-weight: 600;
+        padding: 0.75rem;
+        text-align: left;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+      }
+    }
+  }
+
+  .rbc-agenda-date-cell,
+  .rbc-agenda-time-cell {
+    color: $muted;
+  }
+
+  .rbc-agenda-event-cell {
+    color: $cream;
+
+    a {
+      color: $amber;
+
+      &:hover {
+        color: $amber-dim;
+      }
+    }
+  }
+}
+
+// Dragging state
+.rbc-addons .rbc-dnd-over {
+  background: rgba(42, 157, 143, 0.1);
+}
+
+.rbc-event.rbc-addons-dnd-drag-preview {
+  opacity: 0.7;
+}
+
+.rbc-event.rbc-addons-dnd-over {
+  background: rgba(42, 157, 143, 0.3);
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .rbc-header {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .rbc-month-row {
+    min-height: 80px;
+  }
+
+  .rbc-toolbar {
+    gap: 0.3rem;
+
+    button {
+      padding: 0.3rem 0.7rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  .rbc-toolbar-label {
+    font-size: 1rem;
+  }
+}

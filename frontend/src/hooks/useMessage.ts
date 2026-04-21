@@ -21,7 +21,7 @@ export interface UseMessageReturn {
   conversations: Conversation[] | undefined;
   isLoadingConversations: boolean;
   conversationsError: Error | null;
-  getConversation: (conversationId: number) => UseQueryResult<Conversation, Error>;
+  getConversation: (conversationId: number | null | undefined) => UseQueryResult<Conversation, Error>;
 
   // Mutations
   sendMessage: (msgContent: string, conversationId: number, receiver?: number) => Promise<void>;
@@ -55,8 +55,8 @@ export const useMessage = (): UseMessageReturn => {
   });
 
   // 🔍 Fetch single conversation
-  const getConversationQuery = (conversationId: number): UseQueryResult<Conversation, Error> =>
-    useQuery<Conversation, Error>({
+  const getConversation = (conversationId: number | null | undefined): UseQueryResult<Conversation, Error> => {
+    return useQuery<Conversation, Error>({
       queryKey: ["conversation", conversationId],
       queryFn: async () => {
         const res = await api.get<Conversation>(`/messages/conversations/${conversationId}`);
@@ -64,6 +64,7 @@ export const useMessage = (): UseMessageReturn => {
       },
       enabled: !!conversationId,
     });
+  };
 
   // 💬 Send message mutation
   const sendMessageMutation = useMutation<void, Error, MessageCreate>({
@@ -151,7 +152,7 @@ export const useMessage = (): UseMessageReturn => {
     conversations: conversationsQuery.data,
     isLoadingConversations: conversationsQuery.isLoading,
     conversationsError: conversationsQuery.error,
-    getConversation: getConversationQuery,
+    getConversation,
 
     // Mutations
     sendMessage: (msgContent, conversationId, receiver) =>

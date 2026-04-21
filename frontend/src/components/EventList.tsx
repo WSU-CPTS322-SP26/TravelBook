@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useEvent } from "../hooks/useEvent";
+import { useTrip } from "../hooks/useTrip";
 import EventEdit from "./EventEdit";
 import { Event } from "../types/types";
 
@@ -30,12 +31,14 @@ function formatEventTime(dateStr: string) {
 
 export default function EventList({ events = [], tripId, title = "Events" }: EventListProps) {
 	const { getEventsByTrip, createEvent, updateEvent } = useEvent();
+	const { trips } = useTrip();
 	const eventsQuery = tripId ? getEventsByTrip(tripId) : { data: events, isLoading: false };
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showEditModal, setShowEditModal] = useState(false);
 	const [creating, setCreating] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+	const [selectedTripId, setSelectedTripId] = useState<number | null>(tripId || null);
 
 	const sourceEvents = events.length > 0 ? events : (eventsQuery.data || []);
 	const isLoading = eventsQuery.isLoading;
@@ -56,14 +59,15 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 		locationName: string;
 		locationAddress: string | null;
 	}) => {
-		if (!tripId || !payload.title.trim() || !payload.start) return;
+		const effectiveTripId = selectedTripId || tripId;
+		if (!effectiveTripId || !payload.title.trim() || !payload.start) return;
 
 		setCreating(true);
 		try {
 			await createEvent({
 				title: payload.title,
 				description: payload.description,
-				trip_id: tripId,
+				trip_id: effectiveTripId,
 				start: payload.start,
 				end: payload.end,
 				location: {
@@ -129,11 +133,14 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 					start: new Date().toISOString(),
 					end: new Date().toISOString(),
 					location: { name: "", address: "" },
-                    trip_id: tripId ?? -1
+                    trip_id: selectedTripId ?? -1
 				}}
 				saving={creating}
 				title="Add Event"
 				saveLabel="Add Event"
+				trips={trips}
+				selectedTripId={selectedTripId}
+				onTripChange={setSelectedTripId}
 				onClose={() => !creating && setShowCreateModal(false)}
 				onSave={handleCreateEvent}
 			/>
@@ -141,6 +148,7 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 				open={showEditModal}
 				event={selectedEvent}
 				saving={saving}
+				trips={trips}
 				onClose={() => setShowEditModal(false)}
 				onSave={handleSaveEvent}
 			/>
@@ -148,45 +156,37 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 		<div className="card-header-row">
 			<h3>{title}</h3>
 			<button
-				className="btn-primary"
+				className="btn-primary event-add-btn"
 				onClick={() => setShowCreateModal(true)}
-				disabled={!tripId}
-				style={{ padding: "0.25rem 0.65rem", borderRadius: "0.5rem", fontSize: "1rem" }}
 			>
 				+
 			</button>
 		</div>
 
 		{isLoading ? (
-			<p>Loading events...</p>
+			<p className="text-cream">Loading events...</p>
 		) : orderedEvents.length === 0 ? (
-			<p>No events yet.</p>
+			<p className="text-cream">No events yet.</p>
 		) : (
-			<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+			<div className="event-list">
 				{orderedEvents.map((event) => (
 					<div
 						key={event.id}
-						style={{
-							border: "1px solid rgba(148, 163, 184, 0.3)",
-							borderRadius: "0.75rem",
-							padding: "0.75rem",
-							background: "rgba(2, 6, 23, 0.55)",
-							cursor: "pointer",
-						}}
+						className="event-item"
 					>
-						<div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
-						<strong>{event.title}</strong>
-						<span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
-							{formatEventDate(event.start)} at {formatEventTime(event.start)}
-						</span>
-					</div>
+						<div className="event-item-header">
+							<strong className="event-item-title">{event.title}</strong>
+							<span className="event-item-datetime">
+								{formatEventDate(event.start)} at {formatEventTime(event.start)}
+							</span>
+						</div>
 
 						{event.description && (
-							<p style={{ margin: "0.45rem 0 0", color: "#d1d5db" }}>{event.description}</p>
+							<p className="event-item-description">{event.description}</p>
 						)}
 
 						{event.location?.name && (
-							<p style={{ margin: "0.4rem 0 0", color: "#9ca3af", fontSize: "0.85rem" }}>
+							<p className="event-item-location">
 								Location: {event.location.name}
 							</p>
 						)}

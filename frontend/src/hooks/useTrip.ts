@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import api from "../api";
-import { Trip, Event } from "../types/types";
+import { Trip } from "../types/types";
 
 // ════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -32,6 +32,7 @@ export interface UseTripReturn {
   isLoadingTrips: boolean;
   tripsError: Error | null;
   getTrip: (tripId: number) => UseQueryResult<Trip, Error>;
+  getTrips: () => Promise<Trip[]>;
 
   // Mutations
   createTrip: (name: string, conversationId?: number, description?: string) => Promise<Trip>;
@@ -138,12 +139,23 @@ export const useTrip = (): UseTripReturn => {
     });
   };
 
+  const getTrips = async (): Promise<Trip[]> => {
+    return queryClient.fetchQuery<Trip[]>({
+      queryKey: ["trips"],
+      queryFn: async () => {
+        const res = await api.get<Trip[]>("/trips/getTrips");
+        return res.data;
+      },
+    });
+  };
+
   return {
     // Queries
     trips: tripsQuery.data,
     isLoadingTrips: tripsQuery.isLoading,
     tripsError: tripsQuery.error,
     getTrip: getTripQuery,
+    getTrips,
 
     // Mutations
     createTrip: (name, conversationId, description) =>

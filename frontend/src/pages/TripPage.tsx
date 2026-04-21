@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrip } from "../hooks/useTrip";
-import { useFriend } from "../hooks/useFriend";
+import { useFriend, useUserName } from "../hooks/useFriend";
 import { useMessage } from "../hooks/useMessage";
 import { Trip } from "../types/types";
 import EditableField from "../components/EditableField";
@@ -13,7 +13,9 @@ export default function TripPage() {
   const tripId = Number(id);
   const { getTrip, updateTrip } = useTrip();
   const tripQuery = getTrip(tripId);
-  const { getName, friends } = useFriend();
+  const trip = tripQuery.data;
+  const nameQuery = useUserName(trip?.user_id);
+  const { friends } = useFriend();
   const { getConversation, addConversationParticipant } = useMessage();
   const navigate = useNavigate();
   const [creatorName, setCreatorName] = useState("Unknown User");
@@ -28,17 +30,15 @@ export default function TripPage() {
   const [startDateDraft, setStartDateDraft] = useState("");
   const [endDateDraft, setEndDateDraft] = useState("");
 
-  const trip = tripQuery.data;
   const isLoading = tripQuery.isLoading;
   const error = tripQuery.error;
-  const creatorNameQuery = trip ? getName(trip.user_id) : null;
-  const conversationQuery = trip?.conversation_id ? getConversation(trip.conversation_id) : null;
+  const conversationQuery = getConversation(trip?.conversation_id);
 
   useEffect(() => {
-    if (creatorNameQuery?.data) {
-      setCreatorName(creatorNameQuery.data);
+    if (nameQuery?.data) {
+      setCreatorName(nameQuery.data);
     }
-  }, [creatorNameQuery?.data]);
+  }, [nameQuery?.data]);
 
   useEffect(() => {
     if (!conversationQuery?.data?.users) {

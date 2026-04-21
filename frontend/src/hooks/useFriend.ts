@@ -3,6 +3,36 @@ import api from "../api";
 import { Friend, SuggestedFriend } from "../types/types";
 
 // ════════════════════════════════════════════════════════
+// HOOK: Get User Name
+// ════════════════════════════════════════════════════════
+
+export const useUserName = (userId: number | undefined | null): UseQueryResult<string, Error> => {
+  return useQuery<string, Error>({
+    queryKey: ["userName", userId],
+    queryFn: async () => {
+      const res = await api.get<string>(`/friends/getName/${userId}`);
+      return res.data;
+    },
+    enabled: !!userId,
+  });
+};
+
+// ════════════════════════════════════════════════════════
+// HOOK: Get User Username
+// ════════════════════════════════════════════════════════
+
+export const useUserUsername = (userId: number | undefined | null): UseQueryResult<string, Error> => {
+  return useQuery<string, Error>({
+    queryKey: ["userName", userId],
+    queryFn: async () => {
+      const res = await api.get<string>(`/friends/getUsername/${userId}`);
+      return res.data;
+    },
+    enabled: !!userId,
+  });
+};
+
+// ════════════════════════════════════════════════════════
 // RETURN TYPE
 // ════════════════════════════════════════════════════════
 
@@ -11,18 +41,20 @@ export interface UseFriendReturn {
   friends: Friend[] | undefined;
   isLoadingFriends: boolean;
   friendsError: Error | null;
-  getUsername: (userId: number) => UseQueryResult<string, Error>;
-  getName: (userId: number) => UseQueryResult<string, Error>;
-  getSuggestedFriends: (limit?: number) => UseQueryResult<SuggestedFriend[], Error>;
+  suggestedFriends: SuggestedFriend[] | undefined;
+  isLoadingSuggestedFriends: boolean;
+  suggestedFriendsError: Error | null;
 
   // Mutations
   addFriend: (userId: number) => Promise<void>;
   removeFriend: (userId: number) => Promise<void>;
+  sendFriendRequest: (userId: number) => Promise<void>;
   refetchFriends: () => Promise<void>;
 
   // Mutation states
   isAddingFriend: boolean;
   isRemovingFriend: boolean;
+  isSendingRequest: boolean;
 }
 
 // ════════════════════════════════════════════════════════
@@ -41,38 +73,16 @@ export const useFriend = (): UseFriendReturn => {
     },
   });
 
-  // 🔍 Fetch username for a specific user
-  const getUsernameQuery = (userId: number): UseQueryResult<string, Error> =>
-    useQuery<string, Error>({
-      queryKey: ["username", userId],
-      queryFn: async () => {
-        const res = await api.get<string>(`/friends/getUsername/${userId}`);
-        return res.data;
-      },
-      enabled: !!userId,
-    });
-
-  // 🔍 Fetch name for a specific user
-  const getNameQuery = (userId: number): UseQueryResult<string, Error> =>
-    useQuery<string, Error>({
-      queryKey: ["name", userId],
-      queryFn: async () => {
-        const res = await api.get<string>(`/friends/getName/${userId}`);
-        return res.data;
-      },
-      enabled: !!userId,
-    });
-
-  // 🔍 Fetch suggested friends
-  const getSuggestedFriendsQuery = (limit?: number): UseQueryResult<SuggestedFriend[], Error> =>
-    useQuery<SuggestedFriend[], Error>({
-      queryKey: ["suggestedFriends", limit],
-      queryFn: async () => {
-        const params = limit ? { limit } : {};
-        const res = await api.get<SuggestedFriend[]>("/friends/getSuggestedFriends", { params });
-        return res.data;
-      },
-    });
+  // 🔍 Fetch suggested friends (default limit 5)
+  const suggestedFriendsQuery = useQuery<SuggestedFriend[], Error>({
+    queryKey: ["suggestedFriends"],
+    queryFn: async () => {
+      const res = await api.get<SuggestedFriend[]>("/friends/getSuggestedFriends", { 
+        params: { limit: 5 } 
+      });
+      return res.data;
+    },
+  });
 
   // ➕ Add friend mutation
   const addFriendMutation = useMutation<void, Error, number>({
@@ -83,6 +93,17 @@ export const useFriend = (): UseFriendReturn => {
       // Invalidate and refetch friends list
       queryClient.invalidateQueries({ queryKey: ["friends"] });
       // Invalidate suggested friends since they may have changed
+      queryClient.invalidateQueries({ queryKey: ["suggestedFriends"] });
+    },
+  });
+
+  // 📨 Send friend request mutation
+  const sendFriendRequestMutation = useMutation<void, Error, number>({
+    mutationFn: async (userId) => {
+      await api.post(`/friends/sendFriendRequest/${userId}`);
+    },
+    onSuccess: () => {
+      // Invalidate suggested friends since sending a request removes them from suggestions
       queryClient.invalidateQueries({ queryKey: ["suggestedFriends"] });
     },
   });
@@ -110,17 +131,19 @@ export const useFriend = (): UseFriendReturn => {
     friends: friendsQuery.data,
     isLoadingFriends: friendsQuery.isLoading,
     friendsError: friendsQuery.error,
-    getUsername: getUsernameQuery,
-    getName: getNameQuery,
-    getSuggestedFriends: getSuggestedFriendsQuery,
+    suggestedFriends: suggestedFriendsQuery.data,
+    isLoadingSuggestedFriends: suggestedFriendsQuery.isLoading,
+    suggestedFriendsError: suggestedFriendsQuery.error,
 
     // Mutations
     addFriend: (userId) => addFriendMutation.mutateAsync(userId),
     removeFriend: (userId) => removeFriendMutation.mutateAsync(userId),
+    sendFriendRequest: (userId) => sendFriendRequestMutation.mutateAsync(userId),
     refetchFriends,
 
     // Loading/Error states for mutations
     isAddingFriend: addFriendMutation.isPending,
     isRemovingFriend: removeFriendMutation.isPending,
+    isSendingRequest: sendFriendRequestMutation.isPending,
   };
 };

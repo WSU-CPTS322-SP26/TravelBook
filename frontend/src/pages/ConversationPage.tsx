@@ -24,7 +24,7 @@ export default function ConversationPage() {
             if (explicitName) return explicitName;
 
             const participantNames = (conv.users || [])
-                .map((participant) => participant.username?.trim() || `User ${participant.id}`)
+                .map((participant) => participant.name?.trim() || participant.username?.trim() || `User ${participant.id}`)
                 .filter(Boolean);
 
             return participantNames.length > 0
@@ -33,7 +33,7 @@ export default function ConversationPage() {
         }
         console.log(`current user ${user}`)
         const otherUser = conv.users.find((participant) => participant.id !== user?.id);
-        return otherUser?.username ?? `Conversation ${conv.id}`;
+        return otherUser?.name ?? otherUser?.username ?? `Conversation ${conv.id}`;
     };
 
     return (

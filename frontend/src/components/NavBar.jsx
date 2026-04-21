@@ -2,10 +2,8 @@
 // src/components/Navbar.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { useTrip } from "../hooks/useTrip"
 
 export default function Navbar({ user, onLogout }) {
-  const { activeTrip } = useTrip();
   return (
     <nav className="navbar">
       <div className="navbar-brand">✈ TravelBook</div>
@@ -19,7 +17,6 @@ export default function Navbar({ user, onLogout }) {
       </div>
       <div className="navbar-right">
         <span className="navbar-user">{user?.username}</span>
-        {activeTrip && <span className="navbar-trip-badge">📍 {activeTrip.name}</span>}
         <button className="btn-secondary" onClick={onLogout}>Logout</button>
       </div>
     </nav>

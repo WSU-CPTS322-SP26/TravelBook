@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Event } from "../types/types";
+import { Event, Trip } from "../types/types";
 
 interface EventEditProps {
 	open: boolean;
@@ -7,6 +7,9 @@ interface EventEditProps {
 	saving: boolean;
 	title?: string;
 	saveLabel?: string;
+	trips?: Trip[];
+	selectedTripId?: number | null;
+	onTripChange?: (tripId: number | null) => void;
 	onClose: () => void;
 	onSave: (payload: {
 		title: string;
@@ -31,6 +34,9 @@ export default function EventEdit({
 	saving,
 	title = "Event Details",
 	saveLabel = "Save Changes",
+	trips = [],
+	selectedTripId,
+	onTripChange,
 	onClose,
 	onSave,
 }: EventEditProps) {
@@ -40,6 +46,7 @@ export default function EventEdit({
 	const [editEndDateTime, setEditEndDateTime] = useState("");
 	const [editLocationName, setEditLocationName] = useState("");
 	const [editLocationAddress, setEditLocationAddress] = useState("");
+	const isCreating = event?.id === -1;
 
 	useEffect(() => {
 		if (!event) return;
@@ -63,8 +70,23 @@ export default function EventEdit({
 					</button>
 				</div>
 				<div className="modal-body">
-					<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-						<input
+					<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>					{isCreating && trips.length > 0 && (
+						<>
+							<label style={{ fontSize: "0.875rem", fontWeight: "500" }}>Trip</label>
+							<select
+								className="text-input"
+								value={selectedTripId || ""}
+								onChange={(e) => onTripChange?.(e.target.value ? Number(e.target.value) : null)}
+							>
+								<option value="">Select a trip...</option>
+								{trips.map((trip) => (
+									<option key={trip.id} value={trip.id}>
+									{trip.name}
+									</option>
+								))}
+							</select>
+						</>
+					)}						<input
 							className="text-input"
 							placeholder="Event title"
 							value={editTitle}

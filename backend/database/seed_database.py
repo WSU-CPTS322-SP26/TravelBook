@@ -25,6 +25,7 @@ def seed_database(engine):
             {"username": "charlie", "email": "charlie@example.com", "name": "Charlie Williams", "password": "password123"},
             {"username": "diana",   "email": "diana@example.com",   "name": "Diana Brown",      "password": "password123"},
             {"username": "eve",     "email": "eve@example.com",     "name": "Eve Davis",        "password": "password123"},
+            {"username": "frank",   "email": "frank@example.com",   "name": "Frank Miller",     "password": "password123"}
         ]
 
         users = []
@@ -104,7 +105,7 @@ def seed_database(engine):
         ])
 
         # Conversation 2: Alice, Charlie, Diana (group chat)
-        conv2 = Conversation()
+        conv2 = Conversation(is_group=True, name="Tokyo Trip Planning")
         session.add(conv2)
         session.commit()
         session.refresh(conv2)
@@ -116,7 +117,7 @@ def seed_database(engine):
         ])
 
         # Conversation 3: All users (big group)
-        conv3 = Conversation()
+        conv3 = Conversation(is_group=True)
         session.add(conv3)
         session.commit()
         session.refresh(conv3)

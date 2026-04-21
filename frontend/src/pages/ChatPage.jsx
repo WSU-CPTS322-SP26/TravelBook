@@ -69,7 +69,7 @@ export default function ChatPage() {
       author: resolveAuthor(m, currentConversation.users),
     })));
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-  }, [currentConversation, resolveAuthor]);
+  }, [currentConversation]);
 
   // Subscribe to new messages and polls
   useEffect(() => {
@@ -108,7 +108,7 @@ export default function ChatPage() {
       unsubscribeMessage();
       unsubscribePoll();
     };
-  }, [conversationIdNum, currentUserId, onNewMessage, onNewPoll, resolveAuthor, currentConversation?.users]);
+  }, [conversationIdNum, currentUserId, onNewMessage, onNewPoll, currentConversation?.users]);
 
   // Send message
   const handleSend = () => {
@@ -145,33 +145,33 @@ export default function ChatPage() {
     setShowPollCreation(false);
   };
 
-  // // Handle input change
-  // const handleInputChange = (e) => {
-  //   setInputMessage(e.target.value);
+  // Handle input change
+  const handleInputChange = (e) => {
+    setInputMessage(e.target.value);
     
-  //   // Send typing indicator
-  //   if (isConnected) {
-  //     sendTypingIndicator(conversationIdNum);
-  //   }
+    // Send typing indicator
+    if (isConnected) {
+      sendTypingIndicator(conversationIdNum);
+    }
     
-  //   // Clear existing timeout
-  //   if (typingTimeoutRef.current) {
-  //     clearTimeout(typingTimeoutRef.current);
-  //   }
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     
-  //   // Set new timeout to stop typing indicator after 3 seconds
-  //   typingTimeoutRef.current = setTimeout(() => {
-  //     // Could send "stopped typing" event if needed
-  //   }, 3000);
-  // };
+    // Set new timeout to stop typing indicator after 3 seconds
+    typingTimeoutRef.current = setTimeout(() => {
+      // Could send "stopped typing" event if needed
+    }, 3000);
+  };
 
-  // // Handle Enter key to send message
-  // const handleKeyDown = (e) => {
-  //   if (e.key === 'Enter' && !e.shiftKey) {
-  //     e.preventDefault();
-  //     handleSend();
-  //   }
-  // };
+  // Handle Enter key to send message
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   const handleVote = (pollMessage, selectedOption) => {
     // Build updated meta_data with the vote

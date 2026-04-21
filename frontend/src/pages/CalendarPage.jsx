@@ -1,14 +1,15 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import EventList from "../components/EventList";
 import api from "../api";
 import format from 'date-fns/format'
 import parse from 'date-fns/parse'
 import startOfWeek from 'date-fns/startOfWeek'
 import getDay from 'date-fns/getDay'
 import enUS from 'date-fns/locale/en-US'
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import './calendar-theme.css';
 
 export default function CalendarPage() {
   const { user } = useAuth();
@@ -96,11 +97,11 @@ export default function CalendarPage() {
 
   return (
     <div className="page-container">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Calendar</h2>
+      <div className="page-header">
+        <h2 className="page-title">Calendar</h2>
         {user && (
           <button
-            className="btn btn-sm btn-primary"
+            className="btn-primary"
             onClick={fetchAllEvents}
             disabled={isLoadingEvents}
           >
@@ -111,61 +112,33 @@ export default function CalendarPage() {
         <>
           {/* Calendar Component */}
           {isLoadingEvents && (
-            <div className="alert alert-warning">Loading events...</div>
+            <div className="notification-box" style={{ position: "relative", top: "0", right: "0", width: "100%", marginBottom: "1rem" }}>
+              <div className="notification-item info">
+                <span>Loading events...</span>
+              </div>
+            </div>
           )}
 
-          <Calendar
-            defaultView='month'
-            events={formattedEvents}
-            localizer={localizer}
-            startAccessor="start"
-            endAccessor="end"
-            onSelectSlot={handleSelectSlot}
-            selectable
-            style={{ height: 500 }}
-          />
+          <div className="calendar-wrapper">
+            <Calendar
+              defaultView='month'
+              events={formattedEvents}
+              localizer={localizer}
+              startAccessor="start"
+              endAccessor="end"
+              onSelectSlot={handleSelectSlot}
+              selectable
+              style={{ height: "100%" }}
+            />
+          </div>
 
           {/* Events Display Box */}
           {selectedDate && (
-            <div className="card mt-4 shadow">
-              <div className="card-header bg-info text-white">
-                <h5 className="mb-0">
-                  Events on {format(selectedDate, 'MMMM d, yyyy')}
-                </h5>
-              </div>
-              <div className="card-body">
-                {selectedDateEvents.length === 0 ? (
-                  <p className="text-muted mb-0">No events scheduled for this date.</p>
-                ) : (
-                  <div>
-                    {selectedDateEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        className="alert alert-primary mb-3"
-                        role="alert"
-                      >
-                        <h6 className="alert-heading mb-2">{event.title}</h6>
-                        {event.description && (
-                          <p className="mb-2">
-                            <strong>Description:</strong> {event.description}
-                          </p>
-                        )}
-                        {event.start && (
-                          <p className="mb-0">
-                            <strong>Time:</strong> {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
-                          </p>
-                        )}
-                        {event.location?.name && (
-                          <p className="mb-0">
-                            <strong>Location:</strong> {event.location.name}
-                            {event.location.address && ` - ${event.location.address}`}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="card" style={{ marginTop: "2rem" }}>
+              <EventList 
+                events={selectedDateEvents}
+                title={`Events on ${format(selectedDate, 'MMMM d, yyyy')}`}
+              />
             </div>
           )}
         </>

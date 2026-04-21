@@ -17,7 +17,7 @@ export default function ChatComposer({
         </button>
         {showMediaOptions && (
           <div className="media-options-menu">
-            <button className="media-option" onClick={() => onAddMedia("image")}>
+            {/* <button className="media-option" onClick={() => onAddMedia("image")}>
               Image
             </button>
             <button className="media-option" onClick={() => onAddMedia("video")}>
@@ -25,7 +25,7 @@ export default function ChatComposer({
             </button>
             <button className="media-option" onClick={() => onAddMedia("file")}>
               File
-            </button>
+            </button> */}
             <button className="media-option" onClick={() => onAddMedia("poll")}>
               Poll
             </button>
