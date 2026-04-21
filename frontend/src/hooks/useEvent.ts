@@ -7,18 +7,20 @@ import { Event } from "../types/types";
 // ════════════════════════════════════════════════════════
 
 export interface EventCreate {
-  name: string;
+  title: string;
   description?: string | null;
   trip_id: number;
-  date: string | Date;
+  start: string | Date;
+  end: string | Date;
   location: Record<string, any>;
 }
 
 export interface EventUpdate {
-  name?: string;
+  title?: string;
   description?: string | null;
   trip_id?: number;
-  date?: string | Date;
+  start?: string | Date;
+  end?: string | Date;
   location?: Record<string, any>;
 }
 
@@ -89,10 +91,11 @@ export const useEvent = (): UseEventReturn => {
   const createEventMutation = useMutation<Event, Error, EventCreate>({
     mutationFn: async (eventData) => {
       const res = await api.post<Event>("/events/create", {
-        name: eventData.name,
+        title: eventData.title,
         description: eventData.description,
         trip_id: eventData.trip_id,
-        date: typeof eventData.date === "string" ? eventData.date : eventData.date.toISOString(),
+        start: typeof eventData.start === "string" ? eventData.start : eventData.start.toISOString(),
+        end: typeof eventData.end === "string" ? eventData.end : eventData.end.toISOString(),
         location: eventData.location,
       });
       return res.data;
@@ -111,14 +114,17 @@ export const useEvent = (): UseEventReturn => {
       const oldEventRes = await api.get<Event>(`/events/by-id/${eventId}`);
       const oldEvent = oldEventRes.data;
 
-      const dateValue = updates.date ?? oldEvent.date;
-      const dateStr = typeof dateValue === "string" ? dateValue : dateValue.toISOString();
+      const startValue = updates.start ?? oldEvent.start;
+      const endValue = updates.end ?? oldEvent.end;
+      const startStr = typeof startValue === "string" ? startValue : startValue.toISOString();
+      const endStr = typeof endValue === "string" ? endValue : endValue.toISOString();
 
       const payload = {
-        name: updates.name ?? oldEvent.name,
+        title: updates.title ?? oldEvent.title,
         description: updates.description ?? oldEvent.description,
         trip_id: updates.trip_id ?? oldEvent.trip_id,
-        date: dateStr,
+        start: startStr,
+        end: endStr,
         location: updates.location ?? oldEvent.location,
       };
 

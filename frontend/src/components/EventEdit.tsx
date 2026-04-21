@@ -9,9 +9,10 @@ interface EventEditProps {
 	saveLabel?: string;
 	onClose: () => void;
 	onSave: (payload: {
-		name: string;
+		title: string;
 		description: string | null;
-		date: string;
+		start: string;
+		end: string;
 		locationName: string;
 		locationAddress: string | null;
 	}) => void;
@@ -33,17 +34,19 @@ export default function EventEdit({
 	onClose,
 	onSave,
 }: EventEditProps) {
-	const [editName, setEditName] = useState("");
+	const [editTitle, setEditTitle] = useState("");
 	const [editDescription, setEditDescription] = useState("");
-	const [editDateTime, setEditDateTime] = useState("");
+	const [editStartDateTime, setEditStartDateTime] = useState("");
+	const [editEndDateTime, setEditEndDateTime] = useState("");
 	const [editLocationName, setEditLocationName] = useState("");
 	const [editLocationAddress, setEditLocationAddress] = useState("");
 
 	useEffect(() => {
 		if (!event) return;
-		setEditName(event.name || "");
+		setEditTitle(event.title || "");
 		setEditDescription(event.description || "");
-		setEditDateTime(toDateTimeLocalValue(event.date));
+		setEditStartDateTime(toDateTimeLocalValue(event.start));
+		setEditEndDateTime(toDateTimeLocalValue(event.end));
 		setEditLocationName(event.location?.name || "");
 		setEditLocationAddress(event.location?.address || "");
 	}, [event]);
@@ -63,9 +66,9 @@ export default function EventEdit({
 					<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
 						<input
 							className="text-input"
-							placeholder="Event name"
-							value={editName}
-							onChange={(e) => setEditName(e.target.value)}
+							placeholder="Event title"
+							value={editTitle}
+							onChange={(e) => setEditTitle(e.target.value)}
 						/>
 						<textarea
 							className="text-input"
@@ -74,11 +77,19 @@ export default function EventEdit({
 							value={editDescription}
 							onChange={(e) => setEditDescription(e.target.value)}
 						/>
+						<label style={{ fontSize: "0.875rem", fontWeight: "500" }}>Start Time</label>
 						<input
 							type="datetime-local"
 							className="text-input"
-							value={editDateTime}
-							onChange={(e) => setEditDateTime(e.target.value)}
+							value={editStartDateTime}
+							onChange={(e) => setEditStartDateTime(e.target.value)}
+						/>
+						<label style={{ fontSize: "0.875rem", fontWeight: "500" }}>End Time</label>
+						<input
+							type="datetime-local"
+							className="text-input"
+							value={editEndDateTime}
+							onChange={(e) => setEditEndDateTime(e.target.value)}
 						/>
 						<input
 							className="text-input"
@@ -102,14 +113,15 @@ export default function EventEdit({
 						className="btn-primary"
 						onClick={() =>
 							onSave({
-								name: editName.trim(),
+								title: editTitle.trim(),
 								description: editDescription.trim() || null,
-								date: editDateTime,
+								start: editStartDateTime,
+								end: editEndDateTime,
 								locationName: editLocationName.trim(),
 								locationAddress: editLocationAddress.trim() || null,
 							})
 						}
-						disabled={saving || !editName.trim() || !editDateTime}
+						disabled={saving || !editTitle.trim() || !editStartDateTime || !editEndDateTime}
 					>
 						{saving ? "Saving..." : saveLabel}
 					</button>

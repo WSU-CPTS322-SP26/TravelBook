@@ -243,46 +243,51 @@ def seed_database(engine):
 
         tokyo_events = [
             {
-                "name": "Senso-ji Temple",
+                "title": "Senso-ji Temple",
                 "description": "Ancient Buddhist temple in Asakusa",
                 "trip_id": trips[0].id, "user_id": users[0].id,
-                "date": datetime(2024, 4, 16, 9, 0),
+                "start": datetime(2024, 4, 16, 9, 0),
+                "end": datetime(2024, 4, 16, 11, 0),
                 "location": {"place_id": "ChIJ8T1GpMGOGGARDYGSgpooDWw", "name": "Senso-ji Temple",
                               "latitude": 35.7148, "longitude": 139.7967,
                               "address": "2-3-1 Asakusa, Taito City, Tokyo 111-0032, Japan"}
             },
             {
-                "name": "Tsukiji Outer Market",
+                "title": "Tsukiji Outer Market",
                 "description": "Fresh sushi breakfast!",
                 "trip_id": trips[0].id, "user_id": users[2].id,
-                "date": datetime(2024, 4, 16, 6, 30),
+                "start": datetime(2024, 4, 16, 6, 30),
+                "end": datetime(2024, 4, 16, 8, 30),
                 "location": {"place_id": "ChIJISz8NjyLGGAR5JBaOCZa4RQ", "name": "Tsukiji Outer Market",
                               "latitude": 35.6654, "longitude": 139.7707,
                               "address": "4 Chome Tsukiji, Chuo City, Tokyo 104-0045, Japan"}
             },
             {
-                "name": "Tokyo Tower",
+                "title": "Tokyo Tower",
                 "description": "Iconic landmark with amazing views",
                 "trip_id": trips[0].id, "user_id": users[3].id,
-                "date": datetime(2024, 4, 17, 14, 0),
+                "start": datetime(2024, 4, 17, 14, 0),
+                "end": datetime(2024, 4, 17, 16, 0),
                 "location": {"place_id": "ChIJCewJkL2LGGARHS_m2NRpJKY", "name": "Tokyo Tower",
                               "latitude": 35.6586, "longitude": 139.7454,
                               "address": "4-2-8 Shibakoen, Minato City, Tokyo 105-0011, Japan"}
             },
             {
-                "name": "Shibuya Crossing",
+                "title": "Shibuya Crossing",
                 "description": "World's busiest pedestrian crossing",
                 "trip_id": trips[0].id, "user_id": users[0].id,
-                "date": datetime(2024, 4, 18, 19, 0),
+                "start": datetime(2024, 4, 18, 19, 0),
+                "end": datetime(2024, 4, 18, 20, 30),
                 "location": {"place_id": "ChIJp6kFt9eMGGARJ1vvvHHiPIg", "name": "Shibuya Crossing",
                               "latitude": 35.6595, "longitude": 139.7004,
                               "address": "2-2-1 Dogenzaka, Shibuya City, Tokyo 150-0043, Japan"}
             },
             {
-                "name": "TeamLab Borderless",
+                "title": "TeamLab Borderless",
                 "description": "Digital art museum - mind blowing!",
                 "trip_id": trips[0].id, "user_id": users[2].id,
-                "date": datetime(2024, 4, 19, 11, 0),
+                "start": datetime(2024, 4, 19, 11, 0),
+                "end": datetime(2024, 4, 19, 14, 0),
                 "location": {"place_id": "ChIJQSaJPauOGGARgPvT-4gEbYU", "name": "teamLab Borderless",
                               "latitude": 35.6246, "longitude": 139.7755,
                               "address": "1-3-8 Aomi, Koto City, Tokyo 135-0064, Japan"}
@@ -291,19 +296,21 @@ def seed_database(engine):
 
         paris_events = [
             {
-                "name": "Eiffel Tower",
+                "title": "Eiffel Tower",
                 "description": "Classic Paris experience",
                 "trip_id": trips[1].id, "user_id": users[1].id,
-                "date": datetime(2024, 6, 1, 10, 0),
+                "start": datetime(2024, 6, 1, 10, 0),
+                "end": datetime(2024, 6, 1, 12, 30),
                 "location": {"place_id": "ChIJLU7jZClu5kcR4PcOOO6p3I0", "name": "Eiffel Tower",
                               "latitude": 48.8584, "longitude": 2.2945,
                               "address": "Champ de Mars, 5 Avenue Anatole France, 75007 Paris, France"}
             },
             {
-                "name": "Louvre Museum",
+                "title": "Louvre Museum",
                 "description": "See the Mona Lisa!",
                 "trip_id": trips[1].id, "user_id": users[1].id,
-                "date": datetime(2024, 6, 2, 9, 0),
+                "start": datetime(2024, 6, 2, 9, 0),
+                "end": datetime(2024, 6, 2, 13, 0),
                 "location": {"place_id": "ChIJD3uTd9hx5kcR1IQvGfr8dbk", "name": "Louvre Museum",
                               "latitude": 48.8606, "longitude": 2.3376,
                               "address": "Rue de Rivoli, 75001 Paris, France"}

@@ -42,28 +42,30 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 
 	const orderedEvents = useMemo(() => {
 		return [...sourceEvents].sort((a, b) => {
-			const aTime = new Date(a.date).getTime();
-			const bTime = new Date(b.date).getTime();
+			const aTime = new Date(a.start).getTime();
+			const bTime = new Date(b.start).getTime();
 			return aTime - bTime;
 		});
 	}, [sourceEvents]);
 
 	const handleCreateEvent = async (payload: {
-		name: string;
+		title: string;
 		description: string | null;
-		date: string;
+		start: string;
+		end: string;
 		locationName: string;
 		locationAddress: string | null;
 	}) => {
-		if (!tripId || !payload.name.trim() || !payload.date) return;
+		if (!tripId || !payload.title.trim() || !payload.start) return;
 
 		setCreating(true);
 		try {
 			await createEvent({
-				name: payload.name,
+				title: payload.title,
 				description: payload.description,
 				trip_id: tripId,
-				date: new Date(payload.date).toISOString(),
+				start: payload.start,
+				end: payload.end,
 				location: {
 					name: payload.locationName || "",
 					address: payload.locationAddress,
@@ -84,20 +86,22 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 	};
 
 	const handleSaveEvent = async (payload: {
-		name: string;
+		title: string;
 		description: string | null;
-		date: string;
+		start: string;
+		end: string;
 		locationName: string;
 		locationAddress: string | null;
 	}) => {
-		if (!selectedEvent?.id || !payload.name.trim() || !payload.date) return;
+		if (!selectedEvent?.id || !payload.title.trim() || !payload.start) return;
 
 		setSaving(true);
 		try {
 			await updateEvent(selectedEvent.id, {
-				name: payload.name,
+				title: payload.title,
 				description: payload.description,
-				date: new Date(payload.date).toISOString(),
+				start: payload.start,
+				end: payload.end,
 				location: {
 					name: payload.locationName || "",
 					address: payload.locationAddress,
@@ -119,9 +123,11 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 				open={showCreateModal}
 				event={{
 					id: -1,
-					name: "",
+					user_id: 0,
+					title: "",
 					description: "",
-					date: new Date().toISOString(),
+					start: new Date().toISOString(),
+					end: new Date().toISOString(),
 					location: { name: "", address: "" },
                     trip_id: tripId ?? -1
 				}}
@@ -131,7 +137,6 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 				onClose={() => !creating && setShowCreateModal(false)}
 				onSave={handleCreateEvent}
 			/>
-
 			<EventEdit
 				open={showEditModal}
 				event={selectedEvent}
@@ -170,11 +175,11 @@ export default function EventList({ events = [], tripId, title = "Events" }: Eve
 						}}
 					>
 						<div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
-							<strong>{event.name}</strong>
-							<span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
-								{formatEventDate(event.date)} at {formatEventTime(event.date)}
-							</span>
-						</div>
+						<strong>{event.title}</strong>
+						<span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
+							{formatEventDate(event.start)} at {formatEventTime(event.start)}
+						</span>
+					</div>
 
 						{event.description && (
 							<p style={{ margin: "0.45rem 0 0", color: "#d1d5db" }}>{event.description}</p>

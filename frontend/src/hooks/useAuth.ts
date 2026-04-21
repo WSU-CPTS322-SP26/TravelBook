@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
 import { User } from "../types/types";
+import { useEffect } from "react";
 
 // ════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -47,6 +48,14 @@ export interface UseAuthReturn {
 export const useAuth = (): UseAuthReturn => {
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
+
+  // 🔄 Restore token on component mount (handles page refresh)
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+    }
+  }, []);
 
   // 🔍 Fetch current user
   const currentUserQuery = useQuery<User, Error>({
@@ -114,7 +123,7 @@ export const useAuth = (): UseAuthReturn => {
       // Clear token from localStorage and API headers
       localStorage.removeItem("token");
       delete api.defaults.headers.common["Authorization"];
-      api.interceptors.request.clear();
+      // The request interceptor will automatically use the updated token from localStorage
     },
     onSuccess: () => {
       // Clear current user cache
