@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 
 const plans = [
-  { name: "Starter",  price: 0,  description: "Perfect for solo travelers",  features: ["1 active trip", "Up to 5 events", "Basic map access", "Group chat"] },
+  { name: "Starter",  price: 0,  description: "Perfect for solo travelers",  features: ["1 trip", "Up to 5 events", "Basic map access", "Group chat"] },
   { name: "Explorer", price: 9,  description: "For the frequent traveler",    features: ["Unlimited trips", "Unlimited events", "Full map access", "Group chat", "Calendar planning", "Priority support"] },
   { name: "Voyager",  price: 24, description: "For travel squads",            features: ["Everything in Explorer", "Up to 10 collaborators", "Shared itineraries", "Export to PDF", "Dedicated support"] },
 ];

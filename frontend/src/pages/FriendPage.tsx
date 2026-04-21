@@ -1,85 +1,131 @@
-// Generative Ai was used to develop this code
-// src/pages/FriendPage.tsx
-import React, { useEffect, useState } from "react";
-import { useFriend } from "../context/FriendContext";
+import React, { useState } from "react";
+import { useFriend } from "../hooks/useFriend";
+import { useMessage } from "../hooks/useMessage";
+import { useAuth } from "../hooks/useAuth";
 import { SuggestedFriend } from "../types/types";
 import FriendsList from "../components/FriendsList";
 
 export default function FriendPage() {
-  const { friends, getFriends, addFriend, getSuggestedFriends } = useFriend();
-  const [loading, setLoading] = useState(true);
-  const [suggestedFriends, setSuggestedFriends] = useState<SuggestedFriend[]>([]);
+  const { friends, isLoadingFriends, suggestedFriends, isLoadingSuggestedFriends } = useFriend();
+  const { conversations, isLoadingConversations, sendMessage, createConversation, addConversationParticipant } = useMessage();
+  const { user } = useAuth();
   const [loadingMore, setLoadingMore] = useState(false);
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        await getFriends();
-        const suggestions = await getSuggestedFriends(5);
-        setSuggestedFriends(suggestions);
-        setOffset(5);
-      } catch {}
-      finally { setLoading(false); }
-    };
-    fetchFriends();
-  }, []);
+  const [offset, setOffset] = useState(5);
+  const [sendingRequest, setSendingRequest] = useState<number | null>(null);
 
   const handleLoadMore = async () => {
     setLoadingMore(true);
     try {
-      setSuggestedFriends(await getSuggestedFriends(offset + 5));
+      // Fetch next batch of suggestions
       setOffset(offset + 5);
-    } catch {}
-    finally { setLoadingMore(false); }
+    } catch (error) {
+      console.error("Failed to load more suggestions:", error);
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
-  const handleAddFriend = async (userId: number) => {
+  const handleAddFriend = async (userId: number, friendName: string) => {
+    if (!user) return;
+    setSendingRequest(userId);
     try {
-      await addFriend(userId);
-      setSuggestedFriends(suggestedFriends.filter((s) => s.id !== userId));
-    } catch {}
+      // Find or create a DM conversation with the friend
+      let conversationId: number | null = null;
+
+      // Check if there's already a conversation with this friend
+      if (conversations) {
+        const existingConversation = conversations.find(
+          (conv) =>
+            !conv.is_group &&
+            conv.users?.some((u) => u.id === userId)
+        );
+        if (existingConversation) {
+          conversationId = existingConversation.id;
+        }
+      }
+
+      // If no existing conversation, create one and add the friend
+      if (!conversationId) {
+        conversationId = await createConversation();
+        // Add the friend as a participant to the newly created conversation
+        await addConversationParticipant(conversationId, userId);
+      }
+
+      // Send the friend request message
+      await sendMessage(
+        `${user.name} is requesting to add you as a friend. [FRIEND_REQUEST_${userId}_${user.id}]`,
+        conversationId,
+        userId
+      );
+    } catch (error) {
+      console.error("Failed to send friend request:", error);
+    } finally {
+      setSendingRequest(null);
+    }
   };
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Friends</h1>
-          <p className="page-subtitle">{friends.length} friend{friends.length !== 1 ? "s" : ""}</p>
-        </div>
-      </div>
+      <h1>Friends</h1>
 
+      {/* Friends List Section */}
       <div className="friends-section">
-        <p className="section-label">Your Friends</p>
-        {loading ? (
-          <div><div className="skeleton skeleton-line full" /><div className="skeleton skeleton-line medium" /></div>
-        ) : friends.length === 0 ? (
-          <div className="empty-state card"><div className="empty-state-icon">👥</div><p>No friends yet.<br />Add some from the suggestions below!</p></div>
+        <h2>Your Friends ({friends?.length || 0})</h2>
+
+        {isLoadingFriends ? (
+          <p>Loading friends...</p>
+        ) : !friends || friends.length === 0 ? (
+          <p>You haven't added any friends yet.</p>
         ) : (
           <FriendsList friends={friends} />
         )}
       </div>
 
+      {/* Suggestions Section */}
       <div className="suggestions-section">
-        <p className="section-label">Suggested Friends</p>
-        {suggestedFriends.length === 0 ? (
-          <p className="text-muted" style={{ fontSize: "0.9rem" }}>No suggestions available.</p>
+        <h2>Suggested Friends</h2>
+        {isLoadingSuggestedFriends ? (
+          <p>Loading suggestions...</p>
+        ) : !suggestedFriends || suggestedFriends.length === 0 ? (
+          <p>No suggestions available.</p>
         ) : (
           <>
             <div className="suggestions-list">
-              {suggestedFriends.map((s) => (
-                <div key={s.id} className="suggestion-card">
+              {suggestedFriends.map((suggestion) => (
+                <div key={suggestion.id} className="suggestion-card">
                   <div className="suggestion-info">
-                    <h3>{s.name}</h3>
-                    <p className="suggestion-meta">{s.mutual} mutual friend{s.mutual !== 1 ? "s" : ""}</p>
+                    <h3>{suggestion.name}</h3>
+                    <p className="suggestion-meta">{suggestion.mutual} mutual friends</p>
                   </div>
-                  <button className="btn-teal" onClick={() => handleAddFriend(s.id)}>+ Add</button>
+                  <button
+                    onClick={() => handleAddFriend(suggestion.id, suggestion.name)}
+                    className="btn-primary"
+                    disabled={sendingRequest === suggestion.id}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      fontSize: "0.85rem",
+                      opacity: sendingRequest === suggestion.id ? 0.6 : 1,
+                    }}
+                  >
+                    {sendingRequest === suggestion.id ? "Sending..." : "Add"}
+                  </button>
                 </div>
               ))}
             </div>
-            <button className="btn-secondary mt-3" onClick={handleLoadMore} disabled={loadingMore} style={{ opacity: loadingMore ? 0.6 : 1 }}>
-              {loadingMore ? "Loading…" : "Load More"}
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="btn-secondary"
+              style={{
+                marginTop: "16px",
+                padding: "10px 16px",
+                borderRadius: "6px",
+                cursor: loadingMore ? "not-allowed" : "pointer",
+                opacity: loadingMore ? 0.6 : 1,
+              }}
+            >
+              {loadingMore ? "Loading..." : "Load More"}
             </button>
           </>
         )}

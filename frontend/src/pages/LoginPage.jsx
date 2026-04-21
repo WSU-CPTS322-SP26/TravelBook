@@ -2,12 +2,12 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;

@@ -2,77 +2,106 @@
 import MockAdapter from 'axios-mock-adapter'
 import api from '../api'
 import { renderHook, waitFor } from '@testing-library/react';
-import { test, expect } from 'vitest';
-import { useAuth } from '../context/AuthContext'
-import AuthProvider from '../context/AuthProvider'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { test, expect, beforeEach } from 'vitest';
+import { useAuth } from '../hooks/useAuth'
 
-const mock = new MockAdapter(api);
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false }
+    }
+  });
+  return ({ children }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+};
 
-const testUser = { email: "alice@gmail.com", username: "alice", password:"password" };
+const testUser = { id: 1, email: "alice@gmail.com", username: "alice", name: "Alice" };
 
-test('generating token sets token', async () => {
-    mock.onPost('/auth/token').reply(200, {
-        access_token: "12345678"
-    });
-    mock.onGet('/auth/me').reply(200, {}); // since I dont want to expose generateAccessToken, we use the login funtion to test
-    const { result } = renderHook(() => useAuth(), {
-        wrapper: AuthProvider
-    });
+let mock;
 
-    await result.current.login("alice", "password");
+beforeEach(() => {
+  mock = new MockAdapter(api);
+  localStorage.clear();
+});
 
-    await waitFor( () => {
-        expect(result.current.token).toBe("12345678");
-    })
+test('login sets token in localStorage', async () => {
+  mock.onPost('/auth/token').reply(200, {
+    access_token: "12345678"
+  });
+  mock.onGet('/auth/me').reply(200, testUser);
+
+  const { result } = renderHook(() => useAuth(), {
+    wrapper: createWrapper()
+  });
+
+  await result.current.login("alice", "password");
+
+  await waitFor(() => {
+    expect(localStorage.getItem("token")).toBe("12345678");
+  });
 });
 
 test('login sets user', async () => {
   mock.onPost('/auth/token').reply(200, {
-    access_token: "12345678" // this token does nothing, just a catch in the login function :)
+    access_token: "12345678"
   });
-
   mock.onGet('/auth/me').reply(200, testUser);
 
   const { result } = renderHook(() => useAuth(), {
-    wrapper: AuthProvider
+    wrapper: createWrapper()
   });
 
-  await result.current.login("alice","password");
+  await result.current.login("alice", "password");
 
-  await waitFor( () => {
+  await waitFor(() => {
     expect(result.current.user).toMatchObject(testUser);
-  })
-  
-}); 
-
-test('register sets user', async () => {
-    mock.onPost('/auth/token').reply(200, {
-        access_token: "12345678"
-    });
-    mock.onPost('/auth/register').reply(200, {}) // this is purely a database function, no need to return
-    mock.onGet('/auth/me').reply(200, testUser);
-    const { result } = renderHook(() => useAuth(), {
-        wrapper: AuthProvider
-    });
-
-    await waitFor( () => {
-        expect(result.current.user).toMatchObject(testUser);
-    })
+  });
 });
 
-test('logout sets user=null', async () => {
-    let userOnLogin, userOnLogout;
-    mock.onPost('/auth/token').reply(200, {access_token: "12345678"});
-    mock.onGet('/auth/me').reply(200, testUser);
+test('register sets token and user', async () => {
+  mock.onPost('/auth/register').reply(200, {});
+  mock.onPost('/auth/token').reply(200, {
+    access_token: "12345678"
+  });
+  mock.onGet('/auth/me').reply(200, testUser);
 
-    const { result } = renderHook(() => useAuth(), {
-        wrapper: AuthProvider
-    });
-    await result.current.login("alice","password").then( () => { userOnLogin = result.current.user });
-    result.current.logout();
-    userOnLogout = result.current.user
-    await waitFor( () => {
-        expect(userOnLogin == testUser && userOnLogout == null);
-    })
+  const { result } = renderHook(() => useAuth(), {
+    wrapper: createWrapper()
+  });
 
+  await result.current.register("Alice", "alice", "alice@gmail.com", "password");
+
+  await waitFor(() => {
+    expect(result.current.user).toMatchObject(testUser);
+    expect(localStorage.getItem("token")).toBe("12345678");
+  });
+});
+
+test('logout clears user and token', async () => {
+  mock.onPost('/auth/token').reply(200, {
+    access_token: "12345678"
+  });
+  mock.onGet('/auth/me').reply(200, testUser);
+
+  const { result } = renderHook(() => useAuth(), {
+    wrapper: createWrapper()
+  });
+
+  await result.current.login("alice", "password");
+
+  await waitFor(() => {
+    expect(result.current.user).toBeDefined();
+  });
+
+  await result.current.logout();
+
+  await waitFor(() => {
+    expect(result.current.user).toBeUndefined();
+    expect(localStorage.getItem("token")).toBeNull();
+  });
 });

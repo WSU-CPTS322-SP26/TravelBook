@@ -4,6 +4,7 @@ from database.models import User, Event, EventCreate
 from database.session import get_session
 from auth.auth_handler import get_current_user
 from typing import List
+from datetime import datetime
 
 router = APIRouter(tags=["events"])
 
@@ -22,8 +23,16 @@ def create_event(event: EventCreate,
 def get_events_by_date(date: str,
             db: Session = Depends(get_session), 
             current_user: User = Depends(get_current_user)):
-    events = db.exec(select(Event).where(Event.user_id == current_user.id, Event.date == date)).all()
-    return events
+    # Parse the date string (expecting ISO format: YYYY-MM-DD)
+    try:
+        target_date = datetime.fromisoformat(date.replace("Z", "+00:00")).date()
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format (YYYY-MM-DD or ISO 8601)")
+    
+    # Get all events for the user and filter by date
+    all_events = db.exec(select(Event).where(Event.user_id == current_user.id)).all()
+    filtered_events = [e for e in all_events if e.start.date() == target_date]
+    return filtered_events
 
 @router.get("/by-id/{event_id}", response_model=Event)
 def get_event_by_id(event_id: int,
@@ -61,10 +70,11 @@ def update_event(event_id: int,
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
     
-    db_event.name = event.name
+    db_event.title = event.title
     db_event.description = event.description
     db_event.trip_id = event.trip_id
-    db_event.date = event.date
+    db_event.start = event.start
+    db_event.end = event.end
     db_event.location = event.location
     
     db.add(db_event)

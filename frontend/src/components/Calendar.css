@@ -1,0 +1,173 @@
+/* React Calendar Custom Styling */
+
+.calendar-wrapper {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.react-calendar-custom {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  --react-calendar-border-color: transparent;
+}
+
+/* Navigation buttons */
+.react-calendar-custom button {
+  background: rgba(100, 150, 200, 0.15) !important;
+  border: 1px solid rgba(100, 150, 200, 0.3) !important;
+  color: #64c8ff !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.react-calendar-custom button:hover {
+  background: rgba(100, 150, 200, 0.25) !important;
+  border-color: rgba(100, 150, 200, 0.5) !important;
+}
+
+.react-calendar-custom button:active {
+  background: rgba(100, 150, 200, 0.35) !important;
+}
+
+/* Calendar header text */
+.react-calendar-custom__navigation__label {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+}
+
+/* Weekday headers */
+.react-calendar-custom__month-view__weekdays {
+  margin-bottom: 12px;
+}
+
+.react-calendar-custom__month-view__weekdays__weekday {
+  color: #b0b0b0;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 8px 0;
+}
+
+.react-calendar-custom__month-view__weekdays__weekday abbr {
+  border: none;
+  text-decoration: none;
+  cursor: default;
+}
+
+/* Calendar days */
+.react-calendar-custom__month-view__days {
+  padding: 8px 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.react-calendar-custom__tile {
+  aspect-ratio: 1 / 1;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Days in current month */
+.react-calendar-custom__month-view__days__day {
+  color: #fff;
+  background: rgba(100, 150, 200, 0.15);
+  border: 1px solid rgba(100, 150, 200, 0.2);
+}
+
+.react-calendar-custom__month-view__days__day:hover {
+  background: rgba(100, 150, 200, 0.25);
+  border-color: rgba(100, 150, 200, 0.3);
+}
+
+/* Days in previous/next month */
+.react-calendar-custom__month-view__days__day--neighboringMonth {
+  color: #666;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Today styling */
+.react-calendar-custom__tile--now {
+  background: rgba(100, 200, 100, 0.3) !important;
+  border: 2px solid rgba(100, 200, 100, 0.6) !important;
+  color: #64ff64 !important;
+  font-weight: 600;
+}
+
+.react-calendar-custom__tile--now:hover {
+  background: rgba(100, 200, 100, 0.4) !important;
+  border-color: rgba(100, 200, 100, 0.8) !important;
+}
+
+/* Selected date styling */
+.react-calendar-custom__tile--active {
+  background: rgba(100, 200, 255, 0.3) !important;
+  border: 2px solid rgba(100, 200, 255, 0.6) !important;
+  color: #64c8ff !important;
+  font-weight: 600;
+}
+
+.react-calendar-custom__tile--active:hover {
+  background: rgba(100, 200, 255, 0.4) !important;
+  border-color: rgba(100, 200, 255, 0.8) !important;
+}
+
+/* Event badge styling */
+.event-badge {
+  margin-top: 2px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.event-badge .badge {
+  font-size: 10px;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .calendar-wrapper {
+    padding: 12px;
+  }
+
+  .react-calendar-custom {
+    padding: 12px;
+  }
+
+  .react-calendar-custom__navigation__label {
+    font-size: 14px !important;
+  }
+}

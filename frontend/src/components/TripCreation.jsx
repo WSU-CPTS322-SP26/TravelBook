@@ -1,7 +1,7 @@
 // src/components/TripCreation.jsx
 import React, { useState } from "react";
-import { useTrip } from "../context/TripContext";
-import { useMessage } from "../context/MessageContext";
+import { useTrip } from "../hooks/useTrip";
+import { useMessage } from "../hooks/useMessage";
 
 export default function TripCreation({ onClose = null, onTripCreated = null }) {
   const [tripName, setTripName] = useState("");

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import wsService from '../services/websocket';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { Message, MessageType } from '../types/types';
 
 interface WebSocketContextType {
