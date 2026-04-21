@@ -1,3 +1,5 @@
+// Generative AI was used to develop this code
+// src/pages/ConversationPage.tsx
 import { useState, useEffect } from "react";
 import { useMessage } from "../hooks/useMessage";
 import { useAuth } from "../hooks/useAuth";
@@ -58,5 +60,5 @@ export default function ConversationPage() {
         </ul>
         </div>
         </>
-    )
+    );
 }

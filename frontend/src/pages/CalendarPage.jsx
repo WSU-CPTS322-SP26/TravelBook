@@ -92,6 +92,8 @@ export default function CalendarPage() {
     setSelectedDateEvents(dayEvents);
   };
 
+
+
   return (
     <div className="page-container">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -106,12 +108,6 @@ export default function CalendarPage() {
           </button>
         )}
       </div>
-
-      {!user ? (
-        <div className="alert alert-info" role="alert">
-          <strong>Please log in</strong> to view the calendar.
-        </div>
-      ) : (
         <>
           {/* Calendar Component */}
           {isLoadingEvents && (
@@ -173,7 +169,6 @@ export default function CalendarPage() {
             </div>
           )}
         </>
-      )}
     </div>
   );
 }
