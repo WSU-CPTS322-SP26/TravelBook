@@ -2,7 +2,7 @@
 // src/pages/BillingPage.jsx
 import React, { useState } from "react";
 import CheckoutForm from "../components/CheckoutForm";
-import { useBilling } from "../context/BillingContext";
+import { useBilling } from "../hooks/useBilling";
 
 const plans = [
   {
@@ -31,7 +31,7 @@ function PaymentModal({ onClose, amount}) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-    <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
         <h3 className="modal-title">Make Payment</h3>
         <button onClick={onClose} className="modal-close-btn">✕</button>
@@ -43,7 +43,7 @@ function PaymentModal({ onClose, amount}) {
 }
 
 export default function BillingPage() {
-    const {subscription, deleteSubscription, updateSubscription, createSubscription} = useBilling();
+    const {subscription, deleteSubscription, updateSubscription} = useBilling();
     const [billing, setBilling] = useState("monthly");
     const [showPayment, setShowPayment] = useState(false);
     const currentDate = new Date().toISOString();

@@ -615,6 +615,7 @@
 
 /* Payment modal card preview */
 .modal { background: var(--navy-card); border: 1px solid var(--border-mid); border-radius: var(--radius-xl); width: min(92vw,460px); padding: clamp(1.2rem,2vw,2rem); box-shadow: var(--shadow-lg); }
+.payment-modal { background: var(--navy-card); border: 1px solid var(--border-mid); border-radius: var(--radius-xl); width: min(92vw,460px); padding: clamp(1.2rem,2vw,2rem); box-shadow: var(--shadow-lg); }
 .modal-title { font-family: var(--font-display); font-size: clamp(1rem,1.3vw,1.3rem); color: var(--cream); }
 .modal-close-btn { background: rgba(255,255,255,0.07); border: 1px solid var(--border-mid); border-radius: 50%; width: 32px; height: 32px; color: var(--muted); font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all var(--t) var(--ease); }
 .modal-close-btn:hover { background: rgba(255,255,255,0.13); color: var(--cream); }
