@@ -9,6 +9,7 @@ import messages.messages_router as messages_router
 import trips.trips_router as trips_router
 import friends.friends_router as friends_router
 import messages.messages_websocket as messages_websocket
+import billing.billing_router as billing_router
 
 import os
 
@@ -48,6 +49,7 @@ app.include_router(events_router.router, prefix="/events")
 app.include_router(trips_router.router, prefix="/trips")
 app.include_router(friends_router.router, prefix="/friends")
 app.include_router(messages_websocket.router, prefix="/ws")
+app.include_router(billing_router.router, prefix="/billing")
 
 
 if __name__ == "__main__":

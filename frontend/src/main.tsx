@@ -7,8 +7,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import "./styles.css";
 import { WebSocketProvider } from "./context/WebSocketContext";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import NotificationProvider from "./context/NotificationProvider";
 
+const stripePromise = loadStripe("pk_test_51TKoEdHc8lUnBcDVmGFbt3bjPiBIBsCayfPaRYOEiLkgSe4Mbj3Qfxww3FrNbUKOoBuf2tpOdmofV2thD61prvjh00y12sobRW")
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -16,7 +19,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <WebSocketProvider>
         <NotificationProvider>
-          <App />
+          <Elements stripe = {stripePromise}>
+            <App />
+          </Elements>
         </NotificationProvider>
       </WebSocketProvider>
     </BrowserRouter>

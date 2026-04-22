@@ -1,57 +1,71 @@
 // Generative Ai was used to develop this code
 // src/pages/BillingPage.jsx
 import React, { useState } from "react";
+import CheckoutForm from "../components/CheckoutForm";
+import { useBilling } from "../hooks/useBilling";
 
 const plans = [
-  { name: "Starter",  price: 0,  description: "Perfect for solo travelers",  features: ["1 trip", "Up to 5 events", "Basic map access", "Group chat"] },
-  { name: "Explorer", price: 9,  description: "For the frequent traveler",    features: ["Unlimited trips", "Unlimited events", "Full map access", "Group chat", "Calendar planning", "Priority support"] },
-  { name: "Voyager",  price: 24, description: "For travel squads",            features: ["Everything in Explorer", "Up to 10 collaborators", "Shared itineraries", "Export to PDF", "Dedicated support"] },
+  {
+    name: "Voyager",
+    tier: 0,
+    price: 0,
+    description: "Perfect for solo travelers",
+    features: ["Basic app access"],
+  },
+  {
+    name: "Pathfinder",
+    tier: 1,
+    price: 9,
+    description: "For the frequent traveler",
+    features: ["Access to the map", "Increased storage limits"],
+  },
+  {
+    name: "Pioneer",
+    tier: 2,
+    price: 24,
+    description: "For travel squads",
+    features: ["Everything in the previous tiers", "Further increased storage limits"],
+  },
 ];
-
-function PaymentModal({ onClose, card, setCard }) {
-  const formatNumber = (v) => v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
-  const formatExpiry = (v) => v.replace(/\D/g, "").slice(0, 4).replace(/(.{2})/, "$1/");
+function PaymentModal({ onClose, amount}) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header" style={{ border: "none", paddingBottom: 0 }}>
-          <h3 className="modal-title">Update Payment Method</h3>
-          <button onClick={onClose} className="modal-close-btn">✕</button>
+    <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+        <h3 className="modal-title">Make Payment</h3>
+        <button onClick={onClose} className="modal-close-btn">✕</button>
         </div>
-        <div className="card-preview">
-          <div className="card-chip">▣</div>
-          <div className="card-number">{card.number || "•••• •••• •••• ••••"}</div>
-          <div className="card-bottom">
-            <div><div className="card-label">Card Holder</div><div className="card-value">{card.name || "Your Name"}</div></div>
-            <div><div className="card-label">Expires</div><div className="card-value">{card.expiry || "MM/YY"}</div></div>
-          </div>
-        </div>
-        <div className="form-group"><label className="form-label">Cardholder Name</label><input className="form-input" placeholder="John Smith" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} /></div>
-        <div className="form-group"><label className="form-label">Card Number</label><input className="form-input" placeholder="1234 5678 9012 3456" value={card.number} onChange={(e) => setCard({ ...card, number: formatNumber(e.target.value) })} /></div>
-        <div className="form-row">
-          <div className="form-group"><label className="form-label">Expiry</label><input className="form-input" placeholder="MM/YY" value={card.expiry} onChange={(e) => setCard({ ...card, expiry: formatExpiry(e.target.value) })} /></div>
-          <div className="form-group"><label className="form-label">CVC</label><input className="form-input" placeholder="•••" maxLength={3} value={card.cvc} onChange={(e) => setCard({ ...card, cvc: e.target.value.replace(/\D/g, "").slice(0, 3) })} /></div>
-        </div>
-        <button className="btn-submit" onClick={onClose}>Save Payment Method</button>
-      </div>
+        <CheckoutForm amount={amount}/>
+    </div>
     </div>
   );
 }
 
 export default function BillingPage() {
-  const [billing, setBilling] = useState("monthly");
-  const [showPayment, setShowPayment] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState({});
-  const [card, setCard] = useState({ name: "", number: "", expiry: "", cvc: "" });
+    const {subscription, deleteSubscription, updateSubscription} = useBilling();
+    const [billing, setBilling] = useState("monthly");
+    const [showPayment, setShowPayment] = useState(false);
+    const currentDate = new Date().toISOString();
 
-  const isCurrentPlan = (plan) => plan.name === currentPlan.name;
+    const isCurrentPlan = (plan) => { return subscription && plan.tier===subscription.tier };
 
-  return (
-    <div className="page-container">
-      {showPayment && <PaymentModal onClose={() => setShowPayment(false)} card={card} setCard={setCard} />}
-      <div className="billing-container">
-        <h1 className="billing-heading">Choose your plan</h1>
+    const getNextBillingDate = (subscription) => {
+        if (!subscription) return "N/A";
+        const start = new Date(subscription.start_date);
+        const next = new Date(start);
+        if (subscription.monthly) {
+            next.setMonth(next.getMonth() + 1);
+        } else {
+            next.setFullYear(next.getFullYear() + 1);
+        }
+            return next.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    };
+    return (
+        <div className="page-container">
+        {showPayment && <PaymentModal onClose={() => setShowPayment(false)} amount={subscription && subscription.price * 100}/>}
+        <div className="billing-container">
+            <h1 className="billing-heading">Choose your plan</h1>
 
         <div className="toggle-wrapper">
           <button className={`toggle-btn${billing === "monthly" ? " active" : ""}`} onClick={() => setBilling("monthly")}>Monthly</button>
@@ -61,37 +75,52 @@ export default function BillingPage() {
           </button>
         </div>
 
-        <div className="plans-grid">
-          {plans.map((plan) => {
-            const price = billing === "yearly" ? Math.round(plan.price * 0.8) : plan.price;
-            return (
-              <div key={plan.name} className={`plan-card${isCurrentPlan(plan) ? " active" : ""}`}>
-                {isCurrentPlan(plan) && <div className="current-badge">Current Plan</div>}
-                <h2 className="plan-name">{plan.name}</h2>
-                <p className="plan-desc">{plan.description}</p>
-                <div className="price-row"><span className="price">${price}</span><span className="price-per">/mo</span></div>
-                <ul className="feature-list">
-                  {plan.features.map((f) => <li key={f} className="feature-item"><span className="feature-check">✓</span> {f}</li>)}
-                </ul>
-                <button className={`plan-btn${isCurrentPlan(plan) ? " active" : ""}`} onClick={() => setCurrentPlan(plan)}>
-                  {isCurrentPlan(plan) ? "Manage Plan" : "Get Started"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+            <div className="plans-grid">
+            {plans.map((plan) => {
+                const price = billing === "yearly" ? Math.round(plan.price * 0.8) : plan.price;
+                return (
+                <div key={plan.name} className={(isCurrentPlan(plan) ? "plan-card active":"plan-card")}>
+                    {isCurrentPlan(plan) && <div className="current-badge">Current Plan</div>}
+                    <h2 className="plan-name">{plan.name}</h2>
+                    <p className="plan-desc">{plan.description}</p>
+                    <div className="price-row">
+                    <span className="price">${price}</span>
+                    <span className="price-per">/mo</span>
+                    </div>
+                    <ul className="feature-list">
+                    {plan.features.map((f) => (
+                        <li key={f} className="feature-item">
+                        <span className="feature-check">✓</span> {f}
+                        </li>
+                    ))}
+                    </ul>
+                    <button className={(isCurrentPlan(plan))?"plan-btn active":"plan-btn" } onClick={()=>{updateSubscription( 
+                        { tier: plan.tier, monthly:(billing==="monthly"), price: Math.round(plan.price * 100), start_date:currentDate} 
+                        )}}>
+                    {isCurrentPlan(plan) ? "Current Plan" : "Get Started"}
+                    </button>
+                </div>
+                );
+            })}
+            </div>
 
-        <div className="billing-box">
-          <h3 className="billing-title">Billing Details</h3>
-          <div className="billing-row"><span className="billing-label">Current plan</span><span className="billing-value">{currentPlan.name ? `${currentPlan.name} — ${billing.charAt(0).toUpperCase() + billing.slice(1)}` : "No plan selected"}</span></div>
-          <div className="billing-row"><span className="billing-label">Next billing date</span><span className="billing-value">May 4, 2026</span></div>
-          <div className="billing-row"><span className="billing-label">Payment method</span><span className="billing-value">{card.number ? card.number.slice(0, -4).replace(/\d/g, "•") + card.number.slice(-4) : "No card on file"}</span></div>
-          <div className="billing-actions">
-            <button className="btn-secondary" onClick={() => setShowPayment(true)}>Update Payment</button>
-            <button className="btn-danger" onClick={() => { setCurrentPlan({}); setCard({ name:"",number:"",expiry:"",cvc:"" }); }}>Cancel Subscription</button>
-          </div>
+            <div className="billing-box">
+            <h3 className="billing-title">Billing Details</h3>
+            <div className="billing-row">
+                <span className="billing-label">Current plan</span>
+                <span className="billing-value">{ (subscription) ? plans[subscription.tier].name + " - " + (subscription.monthly?"Monthly":"Yearly") : "No plan selected"}</span>
+            </div>
+            <div className="billing-row">
+                    <span className="billing-label">Next billing date</span>
+                    <span className="billing-value">{getNextBillingDate(subscription)}</span>
+            </div>
+            <div className="billing-actions">
+                <button className="btn-secondary" style={{borderRadius:"8px"}} onClick={() => setShowPayment(true)}>Make Payment</button>
+                <button className="btn-danger" onClick={ () => {
+                    if(window.confirm("Are you sure you want to cancel your subscription?")) deleteSubscription() }} >Cancel Subscription</button>
+            </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+        </div>
+    );
 }
