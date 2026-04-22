@@ -1,5 +1,4 @@
 import { TripContext } from "./TripContext";
-import { useState } from "react";
 import api from "../api";
 
 /*
@@ -15,8 +14,6 @@ import api from "../api";
 */
 
 export function TripProvider({children}){
-  let [activeTrip, setActiveTrip] = useState(null);
-
   const createTrip = async (name, conversationId, description) => {
     await api.post("/trips/create", {name:name, conversation_id:conversationId, description:description});
   };
@@ -32,9 +29,7 @@ export function TripProvider({children}){
   }
 
   const deleteTrip = async(tripId) => {
-    await api.delete(`/trips/${tripId}`).then( () => {
-      if(activeTrip && tripId == activeTrip.id) setActiveTrip(null);
-    } )    
+    await api.delete(`/trips/${tripId}`);
   }
 
   const updateTrip = async (tripId, updates = {}) => {
@@ -48,9 +43,6 @@ export function TripProvider({children}){
     };
 
     const res = await api.put(`/trips/${tripId}`, payload);
-    if (activeTrip && activeTrip.id == tripId) {
-      setActiveTrip(res.data);
-    }
     return res.data;
   };
 
@@ -59,7 +51,7 @@ export function TripProvider({children}){
   }
 
   return (
-      <TripContext.Provider value={{activeTrip, createTrip, getTrips, deleteTrip, setActiveTrip, setTripDate, getTrip, updateTrip}}>
+      <TripContext.Provider value={{createTrip, getTrips, deleteTrip, setTripDate, getTrip, updateTrip}}>
         {children}
       </TripContext.Provider>
   );

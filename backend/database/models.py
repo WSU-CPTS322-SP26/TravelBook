@@ -158,19 +158,21 @@ class Location(SQLModel):
     address: Optional[str] = None
 
 class EventCreate(SQLModel, table=False):
-    name: str
+    title: str
     description: Optional[str] = None
     trip_id: Optional[int] = None
-    date: datetime
+    start: datetime
+    end: datetime
     location: dict
 
 class Event(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    name: str
+    title: str
     description: Optional[str] = None
     trip_id: Optional[int] = Field(default=None, foreign_key="trip.id")
-    date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
+    start: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
+    end: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
     location: dict = Field(sa_column=Column(JSON, nullable=False))
     trip: "Trip" = Relationship(back_populates="events")
 

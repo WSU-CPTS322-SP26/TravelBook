@@ -2,19 +2,37 @@
 import MockAdapter from 'axios-mock-adapter'
 import api from '../api'
 import { renderHook, waitFor } from '@testing-library/react';
-import { test, expect } from 'vitest';
-import { useFriend } from "../context/FriendContext"
-import FriendProvider from '../context/FriendProvider'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { test, expect, beforeEach } from 'vitest';
+import { useFriend } from "../hooks/useFriend"
 
-const mock = new MockAdapter(api);
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false }
+    }
+  });
+  return ({ children }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+};
 
-const testFriends = [{userId:1, username:"Bob"}]
+let mock;
+
+beforeEach(() => {
+  mock = new MockAdapter(api);
+});
+
+const testFriends = [{id:1, username:"Bob"}]
 
 test("get friends updates friends list", async()=>{
     mock.onGet("friends/getFriends").reply(200, testFriends);
 
     const { result } = renderHook(() => useFriend(), {
-        wrapper: FriendProvider
+        wrapper: createWrapper()
     });
 
     await result.current.getFriends();
@@ -29,7 +47,7 @@ test("get username returns correct name", async()=>{
     mock.onGet("friends/getUsername/1").reply(200, testFriends[0].username);
 
     const { result } = renderHook(() => useFriend(), {
-        wrapper: FriendProvider
+        wrapper: createWrapper()
     });
 
     let un = await result.current.getUsername(1);
@@ -38,10 +56,10 @@ test("get username returns correct name", async()=>{
 });
 
 test("add friend accesses route", async()=>{
-    mock.onPost("/friends/addFriend/1").reply(200, {}); // it doesnt return anything
+    mock.onPost("/friends/addFriend/1").reply(200, {});
 
     const { result } = renderHook(() => useFriend(), {
-        wrapper: FriendProvider
+        wrapper: createWrapper()
     });
     await result.current.addFriend(1);
     expect(mock.history.post[0].url).toBe("/friends/addFriend/1");
@@ -49,10 +67,10 @@ test("add friend accesses route", async()=>{
 });
 
 test("remove friend accesses route", async()=>{
-    mock.onPost("/friends/removeFriend/1").reply(200, {}); // it doesnt return anything
+    mock.onPost("/friends/removeFriend/1").reply(200, {});
 
     const { result } = renderHook(() => useFriend(), {
-        wrapper: FriendProvider
+        wrapper: createWrapper()
     });
     await result.current.removeFriend(1);
     waitFor(()=>{

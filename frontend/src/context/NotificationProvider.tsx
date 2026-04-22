@@ -2,7 +2,7 @@ import { useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { NotificationContext } from './NotificationContext';
 import NotificationBox from '../components/NotificationBox';
 import { useWebSocketContext } from './WebSocketContext';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { Notification } from '../types/types';
 
 export interface NotificationContextType {

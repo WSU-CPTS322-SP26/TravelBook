@@ -1,3 +1,5 @@
+// Generative Ai was used to develop this code
+// src/pages/BillingPage.jsx
 import React, { useState } from "react";
 import CheckoutForm from "../components/CheckoutForm";
 import { useBilling } from "../context/BillingContext";
@@ -65,21 +67,13 @@ export default function BillingPage() {
         <div className="billing-container">
             <h1 className="billing-heading">Choose your plan</h1>
 
-            <div className="toggle-wrapper">
-            <button
-                onClick={() => setBilling("monthly")}
-                className={(billing === "monthly") ? "toggle-btn active" : "toggle-btn"}
-            >
-                Monthly
-            </button>
-            <button
-                onClick={() => setBilling("yearly")}
-                className={(billing === "yearly") ? "toggle-btn active" : "toggle-btn"}
-            >
-                Yearly
-                <span style={badge}>Save 20%</span>
-            </button>
-            </div>
+        <div className="toggle-wrapper">
+          <button className={`toggle-btn${billing === "monthly" ? " active" : ""}`} onClick={() => setBilling("monthly")}>Monthly</button>
+          <button className={`toggle-btn${billing === "yearly"  ? " active" : ""}`} onClick={() => setBilling("yearly")}>
+            Yearly
+            <span style={{ background:"rgba(59,130,246,0.3)", border:"1px solid rgba(59,130,246,0.4)", color:"#93c5fd", fontSize:"0.7rem", padding:"2px 8px", borderRadius:"20px" }}>Save 20%</span>
+          </button>
+        </div>
 
             <div className="plans-grid">
             {plans.map((plan) => {
@@ -130,12 +124,3 @@ export default function BillingPage() {
         </div>
     );
 }
-
-const badge = {
-    background: "rgba(59,130,246,0.3)",
-    border: "1px solid rgba(59,130,246,0.4)",
-    color: "#93c5fd",
-    fontSize: "0.7rem",
-    padding: "2px 8px",
-    borderRadius: "20px",
-};

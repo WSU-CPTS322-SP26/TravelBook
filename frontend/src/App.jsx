@@ -12,7 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CalendarPage from "./pages/CalendarPage";
 import SignupPage from "./pages/SignupPage";
 import FriendPage from "./pages/FriendPage";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./hooks/useAuth";
 import BillingPage from "./pages/BillingPage";
 
 

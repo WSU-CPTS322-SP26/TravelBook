@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useTrip } from "../context/TripContext";
-import { useFriend } from "../context/FriendContext";
-import { useMessage } from "../context/MessageContext";
+import { useTrip } from "../hooks/useTrip";
+import { useFriend, useUserName } from "../hooks/useFriend";
+import { useMessage } from "../hooks/useMessage";
 import { Trip } from "../types/types";
 import EditableField from "../components/EditableField";
 import FriendsList from "../components/FriendsList";
@@ -10,11 +10,14 @@ import EventList from "../components/EventList";
 
 export default function TripPage() {
   const { id } = useParams<{ id: string }>();
+  const tripId = Number(id);
   const { getTrip, updateTrip } = useTrip();
-  const { getName, friends, getFriends } = useFriend();
+  const tripQuery = getTrip(tripId);
+  const trip = tripQuery.data;
+  const nameQuery = useUserName(trip?.user_id);
+  const { friends } = useFriend();
   const { getConversation, addConversationParticipant } = useMessage();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState<Trip | null>(null);
   const [creatorName, setCreatorName] = useState("Unknown User");
   const [participants, setParticipants] = useState<Array<{ id: number; name: string }>>([]);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
@@ -26,65 +29,32 @@ export default function TripPage() {
   const [descriptionDraft, setDescriptionDraft] = useState("");
   const [startDateDraft, setStartDateDraft] = useState("");
   const [endDateDraft, setEndDateDraft] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const isLoading = tripQuery.isLoading;
+  const error = tripQuery.error;
+  const conversationQuery = getConversation(trip?.conversation_id);
 
   useEffect(() => {
-    const fetchTrip = async () => {
-      if (!id) {
-        setError("No trip ID provided");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const tripData = await getTrip(Number(id));
-        setTrip(tripData);
-      } catch (err) {
-        console.error("Error fetching trip:", err);
-        setError("Failed to load trip details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTrip();
-  }, [id, getTrip]);
+    if (nameQuery?.data) {
+      setCreatorName(nameQuery.data);
+    }
+  }, [nameQuery?.data]);
 
   useEffect(() => {
-    const fetchCreatorName = async () => {
-      if (!trip) return;
-      const name = await getName(trip.user_id);
-      setCreatorName(name);
-    };
+    if (!conversationQuery?.data?.users) {
+      setParticipants([]);
+      return;
+    }
 
-    fetchCreatorName();
-  }, [trip, getName]);
-
-  useEffect(() => {
-    const fetchParticipants = async () => {
-      if (!trip?.conversation_id) {
-        setParticipants([]);
-        return;
-      }
-
-      try {
-        const conversation = await getConversation(trip.conversation_id);
-        const users = (conversation.users || []).map((user: any) => {
-          return {
-            id: user.id,
-            name: user.name || user.username || `User ${user.id}`,
-          };
-        });
-        setParticipants(users);
-      } catch (err) {
-        console.error("Error fetching participants:", err);
-        setParticipants([]);
-      }
-    };
-
-    fetchParticipants();
-  }, [trip, getConversation]);
+    const conversation = conversationQuery.data;
+    const users = (conversation.users || []).map((user: any) => {
+      return {
+        id: user.id,
+        name: user.name || user.username || `User ${user.id}`,
+      };
+    });
+    setParticipants(users);
+  }, [conversationQuery?.data]);
 
   useEffect(() => {
     if (!trip) return;
@@ -94,7 +64,7 @@ export default function TripPage() {
     setEndDateDraft(trip.end_date ? trip.end_date.slice(0, 10) : "");
   }, [trip]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="page-container">
         <p>Loading trip details...</p>
@@ -106,7 +76,7 @@ export default function TripPage() {
     return (
       <div className="page-container">
         <div className="error-message">
-          <p>{error}</p>
+          <p>Error loading trip: {error.message}</p>
           <button
             onClick={() => navigate(-1)}
             className="btn-primary"
@@ -148,8 +118,7 @@ export default function TripPage() {
   const saveTitle = async () => {
     if (!trip || !titleDraft.trim()) return;
     try {
-      const updated = await updateTrip(trip.id, { name: titleDraft.trim() });
-      setTrip(updated);
+      await updateTrip(trip.id, { name: titleDraft.trim() });
       setIsEditingTitle(false);
     } catch (err) {
       console.error("Error updating title:", err);
@@ -159,10 +128,9 @@ export default function TripPage() {
   const saveDescription = async () => {
     if (!trip) return;
     try {
-      const updated = await updateTrip(trip.id, {
+      await updateTrip(trip.id, {
         description: descriptionDraft.trim() ? descriptionDraft.trim() : null,
       });
-      setTrip(updated);
       setIsEditingDescription(false);
     } catch (err) {
       console.error("Error updating description:", err);
@@ -172,11 +140,10 @@ export default function TripPage() {
   const saveDates = async () => {
     if (!trip) return;
     try {
-      const updated = await updateTrip(trip.id, {
+      await updateTrip(trip.id, {
         start_date: startDateDraft || null,
         end_date: endDateDraft || null,
       });
-      setTrip(updated);
       setIsEditingDates(false);
     } catch (err) {
       console.error("Error updating dates:", err);
@@ -184,11 +151,7 @@ export default function TripPage() {
   };
 
   const openParticipantsModal = async () => {
-    try {
-      await getFriends();
-    } catch (err) {
-      console.error("Error loading friends:", err);
-    }
+    // Friends are automatically loaded by the useFriend hook
     setShowParticipantsModal(true);
   };
 
@@ -231,7 +194,7 @@ export default function TripPage() {
               </div>
 
               <div className="modal-body">
-                {friends.length === 0 ? (
+                {!friends || friends.length === 0 ? (
                   <p>No friends available to add yet.</p>
                 ) : (
                   <FriendsList

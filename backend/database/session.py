@@ -18,6 +18,7 @@ engine = create_engine(DATABASE_URL, echo=False)
 reseed_database = os.getenv("RESEED_DATABASE", "true").lower() == "true"
 
 if reseed_database:
+    print("Reseeding database: Dropping and recreating tables...")
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     seed_database(engine)
