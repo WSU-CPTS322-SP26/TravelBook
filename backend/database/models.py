@@ -190,3 +190,18 @@ class Album(SQLModel, table=True):
 
 class PaymentIntentRequest(SQLModel):
     amount: int
+
+class SubscriptionCreate(SQLModel, table=False):
+    tier : int
+    monthly: bool
+    price: int
+    start_date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
+    
+
+class Subscription(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    tier : int
+    monthly: bool
+    price:int
+    start_date: datetime = Field(sa_column=Column(TIMESTAMP(timezone=True)))
