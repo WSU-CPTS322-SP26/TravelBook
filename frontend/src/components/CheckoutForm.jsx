@@ -18,7 +18,7 @@ export default function CheckoutForm({amount}) {
   const handleSubmit = async () => {
     if (!stripe || !elements) return;
     setLoading(true);
-    const { data } = await api.post("/billing/create-payment-intent", { amount: {amount} });
+    const { data } = await api.post("/billing/create-payment-intent", { amount: amount });
 
     const { error, paymentIntent } = await stripe.confirmCardPayment(data.client_secret, {
       payment_method: {

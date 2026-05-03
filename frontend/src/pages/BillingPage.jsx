@@ -63,7 +63,7 @@ export default function BillingPage() {
     };
     return (
         <div className="page-container">
-        {showPayment && <PaymentModal onClose={() => setShowPayment(false)} amount={subscription && subscription.price * 100}/>}
+        {showPayment && <PaymentModal onClose={() => setShowPayment(false)} amount={subscription && subscription.price}/>}
         <div className="billing-container">
             <h1 className="billing-heading">Choose your plan</h1>
 
